@@ -72,7 +72,7 @@ export GITFLIC_TOKEN="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
 
 ## Примеры использования (в Claude Code)
 
-После подключения агент получает доступ к 77 тулову. Несколько типичных сценариев:
+После подключения агент получает доступ к 77 тулам. Несколько типичных сценариев:
 
 ```
 > Создай MR из текущей ветки в main с описанием из последнего коммита
@@ -108,3 +108,79 @@ MCP-сервер — **тонкая прослойка**: каждая тулз�
 - ❌ Audit log (кто какую тулзу вызвал).
 
 Если нужно — issue/PR.
+
+## Annotations: деструктивные операции требуют approval
+
+Все 77 тулов помечены MCP-аннотациями ([MCP 2025-06-18 spec](https://modelcontextprotocol.io/specification/2025-06-18/server/tools#toolannotations)):
+
+```json
+{
+  "name": "gitflic_mr_close",
+  "annotations": {
+    "title": "MR Close",
+    "readOnlyHint": false,
+    "destructiveHint": true,   // ← клиент запросит подтверждение
+    "idempotentHint": true,    // повторный вызов = то же состояние
+    "openWorldHint": true      // ходит в GitFlic API
+  }
+}
+```
+
+| Hint | Когда `true` | Когда `false` |
+|---|---|---|
+| `readOnlyHint` | list / get / view / search / me / status | create / edit / delete / merge |
+| `destructiveHint` | (почти всегда — дефолт) | только чисто read-only тулзы |
+| `idempotentHint` | close / cancel / delete / bind / set (повтор → то же состояние) | approve (toggle), pipeline start (новый run) |
+| `openWorldHint` | любой тул, ходящий в GitFlic API | только локальные (auth login/logout, alias set, cache clear) |
+
+### Что это даёт
+
+Хосты вроде **Claude Code** и **Cursor** при получении тулза с `destructiveHint: true` показывают пользователю prompt:
+
+```
+gitflic_mr_close wants to close merge request #42 on project FerdBur/wave.
+
+Approve? [y/N]
+```
+
+Это защита от runaway-агентов, которые могут снести прод случайным вызовом `mr_close` или `issue_delete`.
+
+### Как это работает внутри
+
+Аннотации живут в `mcp-server/tools.mjs` рядом с каждым тулзом:
+
+```js
+{
+  name: "gitflic_mr_close",
+  description: "...",
+  inputSchema: { ... },
+  annotations: {
+    title: "MR Close",
+    readOnlyHint: false,
+    destructiveHint: true,
+    idempotentHint: true,
+    openWorldHint: true,
+  },
+  handler: (a) => ["mr", "close", a.localId, "--project", a.project],
+}
+```
+
+`server.mjs` пробрасывает annotations в `server.tool(name, desc, schema, annotations, handler)` — MCP SDK v1.x их нативно поддерживает и шлёт хосту в `tools/list` ответе.
+
+### Re-classification after adding new tools
+
+Если добавляешь новый тул в `tools.mjs`, прогони классификатор:
+
+```bash
+node scripts/annotate-mcp-tools.mjs
+```
+
+Скрипт идёт по TOOLS-массиву, классифицирует каждый по суффиксу/префиксу имени, и вставляет `annotations: {...}` если его ещё нет. Полностью идемпотентен — повторный запуск ничего не дублирует.
+
+Логика классификации — в `scripts/annotate-mcp-tools.mjs` (~150 LOC, без зависимостей).
+
+### Caveats
+
+- `destructiveHint` **не означает "обязательно удалит"** — это hint, что *может*. Хосты используют его для UI prompt, но не для блокировки.
+- Если хост не поддерживает annotations (старые версии), всё работает как раньше — annotations просто игнорируются.
+- `idempotentHint` используется MCP-хостами для авто-retry, но в нашей реализации retry сам делает CLI (через `GITFLIC_HTTP_RETRIES`). Так что это скорее hint для пользователя.

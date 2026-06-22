@@ -66,10 +66,22 @@ function jsonSchemaToZod(schema) {
 // Register each tool from TOOLS.
 for (const tool of TOOLS) {
   const zodInput = jsonSchemaToZod(tool.inputSchema);
+  // Per MCP 2025-06-18 spec, server.tool() in @modelcontextprotocol/sdk@1.x
+  // takes annotations as the 5th positional arg. Clients like Claude Code
+  // and Cursor prompt the user for confirmation when destructiveHint=true.
+  const ann = tool.annotations || {};
+  const annotations = {
+    title: ann.title || tool.name,
+    readOnlyHint: ann.readOnlyHint === true,
+    destructiveHint: ann.destructiveHint !== false,  // default true (may modify state)
+    idempotentHint: ann.idempotentHint === true,
+    openWorldHint: ann.openWorldHint !== false,      // default true (talks to GitFlic)
+  };
   server.tool(
     tool.name,
     tool.description,
     zodInput.shape,
+    annotations,
     async (args) => {
       try {
         // Auto-resolve `project` from env or git remote if not provided.

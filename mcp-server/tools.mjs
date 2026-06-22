@@ -9,6 +9,13 @@ export const TOOLS = [
       "Check authentication: returns the current authenticated user (id, username, email, fullName). Use this first to verify the token works.",
     inputSchema: { type: "object", properties: {} },
     handler: () => ["auth"],
+    annotations: {
+      title: "Auth",
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: false,
+      openWorldHint: true,
+    },
   },
   // ===== auth: multi-account + per-project bindings =====================
   {
@@ -32,6 +39,13 @@ export const TOOLS = [
       if (a.apiBase) args.push("--api-base", a.apiBase);
       return args;
     },
+    annotations: {
+      title: "Auth Login",
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: false,
+      openWorldHint: false,
+    },
   },
   {
     name: "gitflic_auth_logout",
@@ -50,6 +64,13 @@ export const TOOLS = [
       if (a.all) args.push("--all");
       return args;
     },
+    annotations: {
+      title: "Auth Logout",
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: true,
+      openWorldHint: false,
+    },
   },
   {
     name: "gitflic_auth_list",
@@ -57,6 +78,13 @@ export const TOOLS = [
       "List all known accounts (default + named) with masked token values. Marks the active account with '*'. Use before switching or binding to confirm available identities.",
     inputSchema: { type: "object", properties: {} },
     handler: () => ["auth", "list"],
+    annotations: {
+      title: "Auth List",
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: false,
+      openWorldHint: false,
+    },
   },
   {
     name: "gitflic_auth_switch",
@@ -70,6 +98,13 @@ export const TOOLS = [
       },
     },
     handler: (a) => ["auth", "switch", a.name],
+    annotations: {
+      title: "Auth Switch",
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: true,
+      openWorldHint: false,
+    },
   },
   {
     name: "gitflic_auth_bind",
@@ -84,6 +119,13 @@ export const TOOLS = [
       },
     },
     handler: (a) => ["auth", "bind", a.project, a.account],
+    annotations: {
+      title: "Auth Bind",
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: true,
+      openWorldHint: false,
+    },
   },
   {
     name: "gitflic_auth_unbind",
@@ -96,12 +138,26 @@ export const TOOLS = [
       },
     },
     handler: (a) => ["auth", "unbind", a.project],
+    annotations: {
+      title: "Auth Unbind",
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: true,
+      openWorldHint: false,
+    },
   },
   {
     name: "gitflic_auth_bindings",
     description: "List all current project → account bindings. Sorted alphabetically by project.",
     inputSchema: { type: "object", properties: {} },
     handler: () => ["auth", "bindings"],
+    annotations: {
+      title: "Auth Bindings",
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: false,
+      openWorldHint: false,
+    },
   },
   {
     name: "gitflic_project_resolve",
@@ -115,6 +171,13 @@ export const TOOLS = [
       },
     },
     handler: (args) => ["project", "get", args.project],
+    annotations: {
+      title: "Project Resolve",
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: true,
+    },
   },
 
   // ===== merge requests ===================================================
@@ -131,6 +194,13 @@ export const TOOLS = [
       },
     },
     handler: (a) => ["mr", "list", "--project", a.project, "--format", "json", a.page !== undefined ? ["--page", String(a.page)] : [], a.size !== undefined ? ["--size", String(a.size)] : []].flat(),
+    annotations: {
+      title: "Mr List",
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: false,
+      openWorldHint: true,
+    },
   },
   {
     name: "gitflic_mr_view",
@@ -144,6 +214,13 @@ export const TOOLS = [
       },
     },
     handler: (a) => ["mr", "view", a.id, "--project", a.project, "--format", "json"],
+    annotations: {
+      title: "Mr View",
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: false,
+      openWorldHint: true,
+    },
   },
   {
     name: "gitflic_mr_diff",
@@ -154,6 +231,13 @@ export const TOOLS = [
       properties: { project: { type: "string" }, id: { type: "string" } },
     },
     handler: (a) => ["mr", "diff", a.id, "--project", a.project, "--format", "json"],
+    annotations: {
+      title: "Mr Diff",
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: false,
+      openWorldHint: true,
+    },
   },
   {
     name: "gitflic_mr_create",
@@ -181,6 +265,13 @@ export const TOOLS = [
       if (a.removeBranch === false) args.push("--no-remove-branch");
       return args;
     },
+    annotations: {
+      title: "Mr Create",
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: true,
+      openWorldHint: true,
+    },
   },
   {
     name: "gitflic_mr_approve",
@@ -191,6 +282,13 @@ export const TOOLS = [
       properties: { project: { type: "string" }, id: { type: "string" } },
     },
     handler: (a) => ["mr", "approve", a.id, "--project", a.project, "--format", "json"],
+    annotations: {
+      title: "Mr Approve",
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: false,
+      openWorldHint: true,
+    },
   },
   {
     name: "gitflic_mr_merge",
@@ -211,6 +309,13 @@ export const TOOLS = [
       if (a.squashMessage) args.push("--squash-message", a.squashMessage);
       return args;
     },
+    annotations: {
+      title: "Mr Merge",
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: false,
+      openWorldHint: true,
+    },
   },
   {
     name: "gitflic_mr_close",
@@ -221,6 +326,13 @@ export const TOOLS = [
       properties: { project: { type: "string" }, id: { type: "string" } },
     },
     handler: (a) => ["mr", "close", a.id, "--project", a.project, "--format", "json"],
+    annotations: {
+      title: "Mr Close",
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: true,
+      openWorldHint: true,
+    },
   },
   {
     name: "gitflic_mr_comment",
@@ -246,6 +358,13 @@ export const TOOLS = [
       if (a.oldLine !== undefined) args.push("--old-line", String(a.oldLine));
       return args;
     },
+    annotations: {
+      title: "Mr Comment",
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: false,
+      openWorldHint: true,
+    },
   },
   {
     name: "gitflic_mr_discuss_list",
@@ -256,6 +375,13 @@ export const TOOLS = [
       properties: { project: { type: "string" }, id: { type: "string" } },
     },
     handler: (a) => ["mr", "discuss", "list", a.id, "--project", a.project],
+    annotations: {
+      title: "Mr Discuss List",
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: false,
+      openWorldHint: true,
+    },
   },
   {
     name: "gitflic_mr_discuss_reply",
@@ -271,6 +397,13 @@ export const TOOLS = [
       },
     },
     handler: (a) => ["mr", "discuss", "reply", a.id, a.discussionUuid, a.message, "--project", a.project, "--format", "json"],
+    annotations: {
+      title: "Mr Discuss Reply",
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: false,
+      openWorldHint: true,
+    },
   },
   {
     name: "gitflic_mr_discuss_resolve",
@@ -285,6 +418,13 @@ export const TOOLS = [
       },
     },
     handler: (a) => ["mr", "discuss", "resolve", a.id, a.discussionUuid, "--project", a.project, "--format", "json"],
+    annotations: {
+      title: "Mr Discuss Resolve",
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: true,
+    },
   },
 
   // ===== issues ===========================================================
@@ -308,6 +448,13 @@ export const TOOLS = [
       if (a.size !== undefined) args.push("--size", String(a.size));
       return args;
     },
+    annotations: {
+      title: "Issue List",
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: false,
+      openWorldHint: true,
+    },
   },
   {
     name: "gitflic_issue_view",
@@ -318,6 +465,13 @@ export const TOOLS = [
       properties: { project: { type: "string" }, id: { type: "string" } },
     },
     handler: (a) => ["issue", "view", a.id, "--project", a.project, "--format", "json"],
+    annotations: {
+      title: "Issue View",
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: false,
+      openWorldHint: true,
+    },
   },
   {
     name: "gitflic_issue_create",
@@ -337,6 +491,13 @@ export const TOOLS = [
       if (a.status) args.push("--status", a.status);
       return args;
     },
+    annotations: {
+      title: "Issue Create",
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: true,
+      openWorldHint: true,
+    },
   },
   {
     name: "gitflic_issue_close",
@@ -347,6 +508,13 @@ export const TOOLS = [
       properties: { project: { type: "string" }, id: { type: "string" } },
     },
     handler: (a) => ["issue", "close", a.id, "--project", a.project, "--format", "json"],
+    annotations: {
+      title: "Issue Close",
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: true,
+      openWorldHint: true,
+    },
   },
   {
     name: "gitflic_issue_comment",
@@ -357,6 +525,13 @@ export const TOOLS = [
       properties: { project: { type: "string" }, id: { type: "string" }, message: { type: "string" } },
     },
     handler: (a) => ["issue", "comments", "add", a.id, a.message, "--project", a.project, "--format", "json"],
+    annotations: {
+      title: "Issue Comment",
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: false,
+      openWorldHint: true,
+    },
   },
 
   // ===== branches / tags / releases ======================================
@@ -369,6 +544,13 @@ export const TOOLS = [
       properties: { project: { type: "string" } },
     },
     handler: (a) => ["branch", "list", "--project", a.project],
+    annotations: {
+      title: "Branch List",
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: false,
+      openWorldHint: true,
+    },
   },
   {
     name: "gitflic_branch_create",
@@ -387,6 +569,13 @@ export const TOOLS = [
       if (a.from) args.push("--from", a.from);
       return args;
     },
+    annotations: {
+      title: "Branch Create",
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: true,
+      openWorldHint: true,
+    },
   },
   {
     name: "gitflic_branch_delete",
@@ -397,6 +586,13 @@ export const TOOLS = [
       properties: { project: { type: "string" }, name: { type: "string" } },
     },
     handler: (a) => ["branch", "delete", a.name, "--project", a.project],
+    annotations: {
+      title: "Branch Delete",
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: true,
+      openWorldHint: true,
+    },
   },
   {
     name: "gitflic_tag_list",
@@ -407,6 +603,13 @@ export const TOOLS = [
       properties: { project: { type: "string" } },
     },
     handler: (a) => ["tag", "list", "--project", a.project],
+    annotations: {
+      title: "Tag List",
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: false,
+      openWorldHint: true,
+    },
   },
   {
     name: "gitflic_tag_create",
@@ -429,6 +632,13 @@ export const TOOLS = [
       if (a.message) args.push("--message", a.message);
       return args;
     },
+    annotations: {
+      title: "Tag Create",
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: true,
+      openWorldHint: true,
+    },
   },
   {
     name: "gitflic_release_list",
@@ -439,6 +649,13 @@ export const TOOLS = [
       properties: { project: { type: "string" } },
     },
     handler: (a) => ["release", "list", "--project", a.project],
+    annotations: {
+      title: "Release List",
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: false,
+      openWorldHint: true,
+    },
   },
   {
     name: "gitflic_release_create",
@@ -461,6 +678,13 @@ export const TOOLS = [
       if (a.preRelease) args.push("--pre-release");
       return args;
     },
+    annotations: {
+      title: "Release Create",
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: true,
+      openWorldHint: true,
+    },
   },
 
   // ===== commit / user ====================================================
@@ -480,12 +704,26 @@ export const TOOLS = [
       if (a.branch) args.push("--branch", a.branch);
       return args;
     },
+    annotations: {
+      title: "Commit List",
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: false,
+      openWorldHint: true,
+    },
   },
   {
     name: "gitflic_user_me",
     description: "Get the current authenticated user (id, username, email, name, fullName).",
     inputSchema: { type: "object", properties: {} },
     handler: () => ["user", "me", "--format", "json"],
+    annotations: {
+      title: "User Me",
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: false,
+      openWorldHint: true,
+    },
   },
   {
     name: "gitflic_user_search",
@@ -496,6 +734,13 @@ export const TOOLS = [
       properties: { q: { type: "string" } },
     },
     handler: (a) => ["user", "search", "--q", a.q, "--format", "json"],
+    annotations: {
+      title: "User Search",
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: false,
+      openWorldHint: true,
+    },
   },
 
   // ===== project admin ====================================================
@@ -504,6 +749,13 @@ export const TOOLS = [
     description: "List projects where the current user is owner/member.",
     inputSchema: { type: "object", properties: {} },
     handler: () => ["project", "list", "--scope", "my"],
+    annotations: {
+      title: "Project List My",
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: false,
+      openWorldHint: true,
+    },
   },
   {
     name: "gitflic_webhook_list",
@@ -514,6 +766,13 @@ export const TOOLS = [
       properties: { project: { type: "string" } },
     },
     handler: (a) => ["webhook", "list", "--project", a.project],
+    annotations: {
+      title: "Webhook List",
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: false,
+      openWorldHint: true,
+    },
   },
   {
     name: "gitflic_branch_protection_list",
@@ -524,6 +783,13 @@ export const TOOLS = [
       properties: { project: { type: "string" } },
     },
     handler: (a) => ["branch", "protection", "list", "--project", a.project],
+    annotations: {
+      title: "Branch Protection List",
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: false,
+      openWorldHint: true,
+    },
   },
 
   // ===== MR: edits / cancel / by-commit / discuss delete ==================
@@ -549,6 +815,13 @@ export const TOOLS = [
       if (a.removeBranch === false) args.push("--no-remove-branch");
       return args;
     },
+    annotations: {
+      title: "Mr Edit",
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: true,
+      openWorldHint: true,
+    },
   },
   {
     name: "gitflic_mr_cancel",
@@ -559,6 +832,13 @@ export const TOOLS = [
       properties: { project: { type: "string" }, id: { type: "string" } },
     },
     handler: (a) => ["mr", "cancel", a.id, "--project", a.project, "--format", "json"],
+    annotations: {
+      title: "Mr Cancel",
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: true,
+      openWorldHint: true,
+    },
   },
   {
     name: "gitflic_mr_by_commit",
@@ -577,6 +857,13 @@ export const TOOLS = [
       if (a.status) args.push("--status", a.status);
       return args;
     },
+    annotations: {
+      title: "Mr By Commit",
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: false,
+      openWorldHint: true,
+    },
   },
   {
     name: "gitflic_mr_discuss_delete",
@@ -587,6 +874,13 @@ export const TOOLS = [
       properties: { project: { type: "string" }, id: { type: "string" }, discussionUuid: { type: "string" } },
     },
     handler: (a) => ["mr", "discuss", "delete", a.id, a.discussionUuid, "--project", a.project, "--format", "json"],
+    annotations: {
+      title: "Mr Discuss Delete",
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: true,
+      openWorldHint: true,
+    },
   },
 
   // ===== Issue: edit / reopen / delete / comments / relations ============
@@ -613,6 +907,13 @@ export const TOOLS = [
       if (a.label) args.push("--label", a.label);
       return args;
     },
+    annotations: {
+      title: "Issue Edit",
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: true,
+      openWorldHint: true,
+    },
   },
   {
     name: "gitflic_issue_reopen",
@@ -623,6 +924,13 @@ export const TOOLS = [
       properties: { project: { type: "string" }, id: { type: "string" } },
     },
     handler: (a) => ["issue", "reopen", a.id, "--project", a.project, "--format", "json"],
+    annotations: {
+      title: "Issue Reopen",
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: false,
+      openWorldHint: true,
+    },
   },
   {
     name: "gitflic_issue_delete",
@@ -633,6 +941,13 @@ export const TOOLS = [
       properties: { project: { type: "string" }, id: { type: "string" } },
     },
     handler: (a) => ["issue", "delete", a.id, "--project", a.project, "--format", "json"],
+    annotations: {
+      title: "Issue Delete",
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: true,
+      openWorldHint: true,
+    },
   },
   {
     name: "gitflic_issue_comments_list",
@@ -643,6 +958,13 @@ export const TOOLS = [
       properties: { project: { type: "string" }, id: { type: "string" } },
     },
     handler: (a) => ["issue", "comments", "list", a.id, "--project", a.project, "--format", "json"],
+    annotations: {
+      title: "Issue Comments List",
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: false,
+      openWorldHint: true,
+    },
   },
   {
     name: "gitflic_issue_comments_edit",
@@ -656,6 +978,13 @@ export const TOOLS = [
       },
     },
     handler: (a) => ["issue", "comments", "edit", a.id, a.commentId, a.message, "--project", a.project, "--format", "json"],
+    annotations: {
+      title: "Issue Comments Edit",
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: true,
+      openWorldHint: true,
+    },
   },
   {
     name: "gitflic_issue_comments_delete",
@@ -666,6 +995,13 @@ export const TOOLS = [
       properties: { project: { type: "string" }, id: { type: "string" }, commentId: { type: "string" } },
     },
     handler: (a) => ["issue", "comments", "delete", a.id, a.commentId, "--project", a.project, "--format", "json"],
+    annotations: {
+      title: "Issue Comments Delete",
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: true,
+      openWorldHint: true,
+    },
   },
   {
     name: "gitflic_issue_relations_list",
@@ -676,6 +1012,13 @@ export const TOOLS = [
       properties: { project: { type: "string" }, id: { type: "string" } },
     },
     handler: (a) => ["issue", "relations", "list", a.id, "--project", a.project, "--format", "json"],
+    annotations: {
+      title: "Issue Relations List",
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: false,
+      openWorldHint: true,
+    },
   },
 
   // ===== Branch: get / default / compare / protection CRUD ==============
@@ -688,6 +1031,13 @@ export const TOOLS = [
       properties: { project: { type: "string" }, name: { type: "string" } },
     },
     handler: (a) => ["branch", "get", a.name, "--project", a.project, "--format", "json"],
+    annotations: {
+      title: "Branch Get",
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: false,
+      openWorldHint: true,
+    },
   },
   {
     name: "gitflic_branch_default",
@@ -698,6 +1048,13 @@ export const TOOLS = [
       properties: { project: { type: "string" } },
     },
     handler: (a) => ["branch", "default", "--project", a.project, "--format", "json"],
+    annotations: {
+      title: "Branch Default",
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: false,
+      openWorldHint: true,
+    },
   },
   {
     name: "gitflic_branch_protection_get",
@@ -708,6 +1065,13 @@ export const TOOLS = [
       properties: { project: { type: "string" }, uuid: { type: "string" } },
     },
     handler: (a) => ["branch", "protection", "get", a.uuid, "--project", a.project, "--format", "json"],
+    annotations: {
+      title: "Branch Protection Get",
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: false,
+      openWorldHint: true,
+    },
   },
   {
     name: "gitflic_branch_protection_create",
@@ -736,6 +1100,13 @@ export const TOOLS = [
       if (a.autoMerge) args.push("--auto-merge");
       return args;
     },
+    annotations: {
+      title: "Branch Protection Create",
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: true,
+      openWorldHint: true,
+    },
   },
   {
     name: "gitflic_branch_protection_edit",
@@ -761,6 +1132,13 @@ export const TOOLS = [
       if (a.autoMerge !== undefined) args.push("--auto-merge", String(a.autoMerge));
       return args;
     },
+    annotations: {
+      title: "Branch Protection Edit",
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: true,
+      openWorldHint: true,
+    },
   },
   {
     name: "gitflic_branch_protection_delete",
@@ -771,6 +1149,13 @@ export const TOOLS = [
       properties: { project: { type: "string" }, uuid: { type: "string" } },
     },
     handler: (a) => ["branch", "protection", "delete", a.uuid, "--project", a.project, "--format", "json"],
+    annotations: {
+      title: "Branch Protection Delete",
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: true,
+      openWorldHint: true,
+    },
   },
 
   // ===== Tag: get / protection CRUD ======================================
@@ -783,6 +1168,13 @@ export const TOOLS = [
       properties: { project: { type: "string" }, name: { type: "string" } },
     },
     handler: (a) => ["tag", "get", a.name, "--project", a.project, "--format", "json"],
+    annotations: {
+      title: "Tag Get",
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: false,
+      openWorldHint: true,
+    },
   },
 
   // ===== Release: get / latest / edit / delete ============================
@@ -795,6 +1187,13 @@ export const TOOLS = [
       properties: { project: { type: "string" }, uuid: { type: "string" } },
     },
     handler: (a) => ["release", "get", a.uuid, "--project", a.project, "--format", "json"],
+    annotations: {
+      title: "Release Get",
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: false,
+      openWorldHint: true,
+    },
   },
   {
     name: "gitflic_release_latest",
@@ -805,6 +1204,13 @@ export const TOOLS = [
       properties: { project: { type: "string" } },
     },
     handler: (a) => ["release", "latest", "--project", a.project, "--format", "json"],
+    annotations: {
+      title: "Release Latest",
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: false,
+      openWorldHint: true,
+    },
   },
   {
     name: "gitflic_release_edit",
@@ -826,6 +1232,13 @@ export const TOOLS = [
       if (a.preRelease !== undefined) args.push("--pre-release", String(a.preRelease));
       return args;
     },
+    annotations: {
+      title: "Release Edit",
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: true,
+      openWorldHint: true,
+    },
   },
   {
     name: "gitflic_release_delete",
@@ -836,6 +1249,13 @@ export const TOOLS = [
       properties: { project: { type: "string" }, uuid: { type: "string" } },
     },
     handler: (a) => ["release", "delete", a.uuid, "--project", a.project, "--format", "json"],
+    annotations: {
+      title: "Release Delete",
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: true,
+      openWorldHint: true,
+    },
   },
 
   // ===== Commit: get / files / compare ===================================
@@ -848,6 +1268,13 @@ export const TOOLS = [
       properties: { project: { type: "string" }, hash: { type: "string" } },
     },
     handler: (a) => ["commit", "get", a.hash, "--project", a.project, "--format", "json"],
+    annotations: {
+      title: "Commit Get",
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: false,
+      openWorldHint: true,
+    },
   },
   {
     name: "gitflic_commit_files",
@@ -858,6 +1285,13 @@ export const TOOLS = [
       properties: { project: { type: "string" }, hash: { type: "string" } },
     },
     handler: (a) => ["commit", "files", a.hash, "--project", a.project, "--format", "json"],
+    annotations: {
+      title: "Commit Files",
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: false,
+      openWorldHint: true,
+    },
   },
   {
     name: "gitflic_commit_compare",
@@ -868,6 +1302,13 @@ export const TOOLS = [
       properties: { project: { type: "string" }, source: { type: "string" }, target: { type: "string" } },
     },
     handler: (a) => ["commit", "compare", a.source, a.target, "--project", a.project, "--format", "json"],
+    annotations: {
+      title: "Commit Compare",
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: false,
+      openWorldHint: true,
+    },
   },
 
   // ===== Webhook: get / create / delete ==================================
@@ -880,6 +1321,13 @@ export const TOOLS = [
       properties: { project: { type: "string" }, uuid: { type: "string" } },
     },
     handler: (a) => ["webhook", "get", a.uuid, "--project", a.project, "--format", "json"],
+    annotations: {
+      title: "Webhook Get",
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: false,
+      openWorldHint: true,
+    },
   },
   {
     name: "gitflic_webhook_create",
@@ -903,6 +1351,13 @@ export const TOOLS = [
       if (a.active !== undefined) args.push("--active", String(a.active));
       return args;
     },
+    annotations: {
+      title: "Webhook Create",
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: true,
+      openWorldHint: true,
+    },
   },
   {
     name: "gitflic_webhook_delete",
@@ -913,6 +1368,13 @@ export const TOOLS = [
       properties: { project: { type: "string" }, uuid: { type: "string" } },
     },
     handler: (a) => ["webhook", "delete", a.uuid, "--project", a.project, "--format", "json"],
+    annotations: {
+      title: "Webhook Delete",
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: true,
+      openWorldHint: true,
+    },
   },
 
   // ===== Project: get / create / edit / member list =====================
@@ -925,6 +1387,13 @@ export const TOOLS = [
       properties: { project: { type: "string" } },
     },
     handler: (a) => ["project", "get", a.project, "--format", "json"],
+    annotations: {
+      title: "Project Get",
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: false,
+      openWorldHint: true,
+    },
   },
   {
     name: "gitflic_project_create",
@@ -951,6 +1420,13 @@ export const TOOLS = [
       if (a.ownerAliasType) args.push("--owner-alias-type", a.ownerAliasType);
       return args;
     },
+    annotations: {
+      title: "Project Create",
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: true,
+      openWorldHint: true,
+    },
   },
   {
     name: "gitflic_project_edit",
@@ -976,6 +1452,13 @@ export const TOOLS = [
       if (a.defaultBranch) args.push("--default-branch", a.defaultBranch);
       return args;
     },
+    annotations: {
+      title: "Project Edit",
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: true,
+      openWorldHint: true,
+    },
   },
   {
     name: "gitflic_project_member_list",
@@ -986,6 +1469,13 @@ export const TOOLS = [
       properties: { project: { type: "string" } },
     },
     handler: (a) => ["project", "member", "list", "--project", a.project, "--format", "json"],
+    annotations: {
+      title: "Project Member List",
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: false,
+      openWorldHint: true,
+    },
   },
   {
     name: "gitflic_project_member_invite",
@@ -1000,6 +1490,13 @@ export const TOOLS = [
       },
     },
     handler: (a) => ["project", "member", "invite", a.userAlias, "--role", a.role, "--project", a.project, "--format", "json"],
+    annotations: {
+      title: "Project Member Invite",
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: false,
+      openWorldHint: true,
+    },
   },
 
   // ===== Blob / file: get / files / archive =============================
@@ -1022,6 +1519,13 @@ export const TOOLS = [
       if (a.commit) args.push("--commit", a.commit);
       return args;
     },
+    annotations: {
+      title: "Blob Get",
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: false,
+      openWorldHint: true,
+    },
   },
   {
     name: "gitflic_blob_files",
@@ -1041,6 +1545,13 @@ export const TOOLS = [
       if (a.branch) args.push("--branch", a.branch);
       return args;
     },
+    annotations: {
+      title: "Blob Files",
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: false,
+      openWorldHint: true,
+    },
   },
   {
     name: "gitflic_blob_archive",
@@ -1051,6 +1562,13 @@ export const TOOLS = [
       properties: { project: { type: "string" }, branch: { type: "string" } },
     },
     handler: (a) => ["blob", "archive", a.branch, "--project", a.project, "--format", "json"],
+    annotations: {
+      title: "Blob Archive",
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: false,
+      openWorldHint: true,
+    },
   },
 
   // ===== User: get / projects / followers =================================
@@ -1063,6 +1581,13 @@ export const TOOLS = [
       properties: { alias: { type: "string" } },
     },
     handler: (a) => ["user", "get", a.alias, "--format", "json"],
+    annotations: {
+      title: "User Get",
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: false,
+      openWorldHint: true,
+    },
   },
   {
     name: "gitflic_user_projects",
@@ -1073,6 +1598,13 @@ export const TOOLS = [
       properties: { alias: { type: "string" } },
     },
     handler: (a) => ["user", "projects", a.alias, "--format", "json"],
+    annotations: {
+      title: "User Projects",
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: false,
+      openWorldHint: true,
+    },
   },
   {
     name: "gitflic_user_followers",
@@ -1083,6 +1615,13 @@ export const TOOLS = [
       properties: { alias: { type: "string" } },
     },
     handler: (a) => ["user", "followers", a.alias, "--format", "json"],
+    annotations: {
+      title: "User Followers",
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: false,
+      openWorldHint: true,
+    },
   },
 ];
 
