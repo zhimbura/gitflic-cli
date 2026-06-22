@@ -52,7 +52,9 @@ export default defineConfig({
       },
     ],
     ["meta", { name: "robots", content: "index, follow, max-image-preview:large" }],
-    ["meta", { name: "yandex-verification-hint", content: "gitflic-cli docs" }],
+    // Search engine ownership verification (meta-tag method).
+    ["meta", { name: "yandex-verification", content: "2ef893d6e880d22e" }],
+    ["meta", { name: "google-site-verification", content: "0a1Mr81i_lcUATVgjpCxn87-DSZ528jLM3PKdXEnJ4s" }],
     // Open Graph
     ["meta", { property: "og:type", content: "website" }],
     ["meta", { property: "og:site_name", content: "gitflic-cli" }],
