@@ -1,9 +1,12 @@
-# Timeweb Apps config for gitflic-cli docs + release artifacts.
-# Static site: Docsify docs/ + tarballs in docs/releases/.
-# Deployed manually via Timeweb Cloud Console (web upload) since
-# the twc CLI does not expose an upload command.
+# Timeweb Apps config for the gitflic-cli documentation site.
+# Docs are a VitePress static site (docs/). `npm run docs:build` produces the
+# static bundle in docs/.vitepress/dist, which is what gets served.
+# Flow: push -> GitHub mirror -> Timeweb builds & serves the static output.
 app:
   name: gitflic-cli-docs
   type: frontend
-  preset: another
-  comment: gitflic-cli docs + release tarballs (manual upload)
+  # Static-site build: install deps, build VitePress, serve the dist dir.
+  framework: static
+  build_cmd: npm ci && npm run docs:build
+  index_dir: docs/.vitepress/dist
+  comment: gitflic-cli docs (VitePress) + release tarballs under /downloads/

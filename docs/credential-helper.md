@@ -43,4 +43,4 @@ GitFlic поддерживает HTTPS push только с **SSH-ключом �
 
 ## Если очень нужно
 
-Открой issue: <https://gitflic.ru/project/tikhon/gitflic-cli/-/issues> с описанием use-case. Реализуем, если спрос есть.
+Открой issue: https://gitflic.ru/project/tikhon/gitflic-cli/-/issues с описанием use-case. Реализуем, если спрос есть.

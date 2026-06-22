@@ -4,7 +4,7 @@
 
 ## Содержание
 
-- **[`auth`](auth/README.md)** — login, logout, status, switch, multi-account, per-project bindings.
+- **[`auth`](/auth/)** — login, logout, status, switch, multi-account, per-project bindings.
 - **[`mr`](mr.md)** — merge requests (list, view, diff, create, approve, merge, close, cancel, comments, discussions, settings).
 - **[`branch`](branch-tag.md#branch)** — ветки: list, get, create, delete + protection rules.
 - **[`tag`](branch-tag.md#tag)** — теги: list, get, create, delete.
@@ -22,11 +22,11 @@
 - **[`registry`](registry.md)** — реестр пакетов (scopes: project/company/instance): `registry package` (list/get/versions/files/upload/download/delete) + `registry repo` (registry-repository, Enterprise/Atlas-only).
 - **[`cicd`](cicd-webhook.md#cicd)** — пайплайны и джобы.
 - **[`runner`](cicd-webhook.md#runner)** — CI/CD runners / агенты.
-- **[`admin`](commands/admin.md)** — admin-эндпоинты (только для инстанс-админов).
-- **[`saml`](commands/saml.md)** — SAML SSO (только для инстанс-админов).
-- **[`cache`](commands/cache.md)** — локальный кеш project UUID.
-- **[`completion`](commands/completion.md)** — shell completion (bash/zsh/fish).
-- **[`alias`](commands/alias.md)** — persistent user config (default-project, api-base и т.д.).
+- **[`admin`](./admin.md)** — admin-эндпоинты (только для инстанс-админов).
+- **[`saml`](./saml.md)** — SAML SSO (только для инстанс-админов).
+- **[`cache`](./cache.md)** — локальный кеш project UUID.
+- **[`completion`](./completion.md)** — shell completion (bash/zsh/fish).
+- **[`alias`](./alias.md)** — persistent user config (default-project, api-base и т.д.).
 
 ## Глобальные флаги
 
@@ -107,7 +107,7 @@ CLI хранит persistent state в:
 - **Linux** → GNOME Keyring / KWallet (зашифровано)
 - **иначе** → `~/.config/gitflic-cli/config.json` (`chmod 0600`)
 
-Управляется через [alias](../commands/alias.md) (config-ключи) и [auth](../auth/README.md) (токены + привязки).
+Управляется через [alias](../commands/alias.md) (config-ключи) и [auth](/auth/) (токены + привязки).
 
 ## Отладка
 

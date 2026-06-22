@@ -14,7 +14,7 @@ bash install.sh
 
 ## 2. Получить токен
 
-Открой <https://gitflic.ru> → **Профиль** → **API-токены** → **Создать**.
+Открой https://gitflic.ru → **Профиль** → **API-токены** → **Создать**.
 
 Минимально нужные скоупы: `PROJECT_READ` + `PROJECT_WRITE` (или `PROJECT_EDIT`) для работы с MR.
 
@@ -104,7 +104,7 @@ gitflic runner list --scope company --company acme         # раннеры ко
 
 ## Что дальше
 
-- [Аутентификация — обзор](auth/README.md) — multi-account, per-project bindings, threat model.
-- [Команды — справочник](commands/README.md) — все доступные модули и флаги.
+- [Аутентификация — обзор](/auth/) — multi-account, per-project bindings, threat model.
+- [Команды — справочник](/commands/) — все доступные модули и флаги.
 - [MCP-сервер](mcp-server.md) — для AI-агентов (Claude Code, Cursor).
 - [Известные проблемы](known-issues.md) — что может пойти не так.

@@ -14,13 +14,16 @@
     "start": "node lib/gitflic.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
-    "docs:dev": "node scripts/serve-docs.mjs",
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
+    "docs:preview": "vitepress preview docs",
     "build": "node scripts/build.mjs",
     "release": "node scripts/release.mjs",
     "lint": "node scripts/build.mjs --no-test --no-bundle"
   },
   "license": "MIT",
   "devDependencies": {
+    "vitepress": "^1.6.4",
     "vitest": "^4.1.9"
   }
 }
