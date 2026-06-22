@@ -31,9 +31,9 @@
 
 - **Разработка**
   - [Локальная разработка](development.md)
-  - [CI/CD и Pages](ci-cd.md)
   - [Покрытие API](api-coverage.md)
   - [Известные проблемы](known-issues.md)
+  - [Релизы и артефакты](releases/README.md)
 
 - **Справка**
   - [ENV переменные](env.md)

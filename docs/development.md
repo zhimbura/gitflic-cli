@@ -19,7 +19,7 @@ gitflic-cli/
 ├── docs/                        # эта документация (Docsify)
 ├── scripts/                     # утилиты (docs dev-server)
 ├── install.sh / install.ps1      # установщики
-├── gitflic-ci.yaml              # GitFlic CI pipeline
+├── gitflic-ci.yaml              # (удалён в 0.2.0 — собираем локально)
 ├── package.json                 # только devDeps (vitest)
 └── vitest.config.mjs
 ```
@@ -85,12 +85,10 @@ npx vitest run path/to/specific.test.mjs   # один файл
 Сейчас нет линтера (только `node --check`). Если хочется eslint — отдельный PR. Минимальный sanity-check:
 
 ```bash
-for f in lib/gitflic.mjs lib/*.mjs lib/cmd/*.mjs mcp-server/*.mjs scripts/*.mjs; do
-  node --check "$f" || exit 1
-done
+npm run lint
+# или
+node scripts/build.mjs --no-test --no-bundle
 ```
-
-(Это то, что GitFlic CI гоняет в `lint` job — см. [ci-cd.md](ci-cd.md).)
 
 ## Документация
 
@@ -104,16 +102,43 @@ node scripts/serve-docs.mjs
 
 Изменил `.md` файл — обнови страницу в браузере, никакой пересборки.
 
-## Релиз
+## Сборка и релиз
 
-Manual для now (нет автоматического tag→publish):
+`scripts/build.mjs` — полная локальная сборка: syntax-check всех .mjs, JSON-валидация, vitest, `tar.gz` portable-бандла в `dist/`.
 
 ```bash
-# 1. Обнови CHANGELOG.md, закомить
-# 2. Тег
-git tag -a v0.2.0 -m "v0.2.0 — see CHANGELOG"
-git push origin v0.2.0
-# 3. Если хочешь опубликовать npm — отдельный шаг (не делаем сейчас)
+npm run build               # lint + test + tar.gz
+npm run build -- --no-test  # быстрая итерация (без тестов)
+npm run build -- --no-bundle # только проверки, без tar.gz
+```
+
+`scripts/release.mjs` — бампит версию в `package.json`, пересобирает, копирует tar.gz в **`docs/releases/`** (это та же папка, которую хостит Timeweb Apps — артефакты качаются прямо с сайта, без S3), и пересобирает `docs/releases/index.html` со списком релизов.
+
+```bash
+npm run release -- --version 0.2.0   # бамп + билд + ship
+npm run release                      # интерактивно спросит версию
+```
+
+Почему так: на публичном `gitflic.ru` нет shared runners (нужна Company + self-hosted `runner.jar` — это платный VPS), и покупать S3 ради одного tar.gz тоже не хочется. Поэтому:
+
+1. CI/CD выпилен (`gitflic-ci.yaml` удалён).
+2. Документация хостится на **Timeweb Apps** (статический preset, `index_dir=/`).
+3. Артефакты сборки лежат в той же статике — под тем же доменом, что и документы.
+
+Workflow релиза целиком:
+
+```bash
+# 1. Поправил код, прогнал тесты
+npm run build
+
+# 2. Бамп + ship в docs/releases/
+npm run release -- --version 0.2.0
+
+# 3. Коммит
+git add . && git commit -m "release: v0.2.0"
+
+# 4. Пуш (Timeweb Apps задеплоит docs/ автоматически)
+git push origin main
 ```
 
 ## Отладка

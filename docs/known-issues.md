@@ -90,6 +90,46 @@ PR приветствуется.
 
 ---
 
+## `cicd pipeline <id>` и `cicd jobs <pipelineId>` → HTTP 404
+
+**Симптом:**
+
+```
+gitflic cicd pipeline f7dc822f-9d79-408a-854c-81db89a0075c --project tikhon/gitflic-cli
+gitflic: HTTP 404  — Not Found
+URL: GET https://api.gitflic.ru/project/tikhon/gitflic-cli/cicd/pipeline/f7dc822f-9d79-408a-854c-81db89a0075c
+
+gitflic cicd jobs f7dc822f-9d79-408a-854c-81db89a0075c --project tikhon/gitflic-cli
+gitflic: HTTP 404  — Not Found
+URL: GET https://api.gitflic.ru/project/tikhon/gitflic-cli/cicd/pipeline/f7dc822f-9d79-408a-854c-81db89a0075c/jobs
+```
+
+**Причина:** публичный REST GitFlic отдаёт `GET /cicd/pipeline` (список) и `POST /cicd/pipeline/start` (запуск), но **не отдаёт** `GET /cicd/pipeline/{id}` и `GET /cicd/pipeline/{id}/jobs`. Web UI использует внутренний эндпоинт, недоступный по токену. Список (`cicd pipeline list`) при этом работает корректно.
+
+**Обход:** используй `cicd pipeline list --format json | jq '._embedded.restPipelineModelList[] | select(.id == "<id>")'` чтобы получить поля пайплайна. Для jobs конкретного pipeline — смотреть через Web UI (`https://gitflic.ru/project/{owner}/{alias}/-/ci-cd/pipeline/{id}/jobs`).
+
+**Статус:** заведено как баг в `lib/cmd/cicd.mjs` (TODO 0.3.0 — найти правильный эндпоинт через сниффинг web UI, либо явно die с этим текстом вместо 404).
+
+---
+
+## `cicd pipeline list` в pretty-режиме показывает "(no pipelines)" хотя JSON непустой
+
+**Симптом (до 0.2.0):**
+
+```
+gitflic cicd pipeline list --project tikhon/gitflic-cli
+(no pipelines)
+
+gitflic cicd pipeline list --project tikhon/gitflic-cli --format json
+# { "_embedded": { "restPipelineModelList": [ ... 2 pipeline objects ... ] } }
+```
+
+**Причина:** CLI пытался достать список из `_embedded.pipelineList` / `_embedded.pipelines`, а реальный ключ HAL-коллекции GitFlic — `restPipelineModelList`. Pretty-принтер видел пустой массив и печатал "(no pipelines)".
+
+**Решено в 0.2.0:** `lib/cmd/cicd.mjs` теперь читает `restPipelineModelList` первым, со старыми ключами как fallback.
+
+---
+
 ## `saml list` — code-only, не live-tested
 
 Модуль реализован, но живое тестирование против self-hosted GitFlic с SAML SSO не проводилось. Если у тебя есть такой инстанс — проверь и открой issue если что-то сломано.

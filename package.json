@@ -15,8 +15,9 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "docs:dev": "node scripts/serve-docs.mjs",
-    "docs:build": "echo \"Docsify is build-free. Push docs/ to your Pages branch.\" && exit 0",
-    "lint": "node -e \"for (const f of ['lib/gitflic.mjs', ...require('fs').readdirSync('lib').filter(x=>x.endsWith('.mjs')), ...require('fs').readdirSync('lib/cmd').filter(x=>x.endsWith('.mjs')).map(x=>'lib/cmd/'+x), ...require('fs').readdirSync('mcp-server').filter(x=>x.endsWith('.mjs')).map(x=>'mcp-server/'+x)]) { require('child_process').execSync('node --check '+f, {stdio:'inherit'}); }\""
+    "build": "node scripts/build.mjs",
+    "release": "node scripts/release.mjs",
+    "lint": "node scripts/build.mjs --no-test --no-bundle"
   },
   "license": "MIT",
   "devDependencies": {
