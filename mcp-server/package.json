@@ -1,0 +1,20 @@
+{
+  "name": "gitflic-cli-mcp",
+  "version": "0.1.0",
+  "description": "MCP server wrapping gitflic CLI — exposes GitFlic REST API as typed tools for AI agents (Claude Code, Cursor, etc.)",
+  "type": "module",
+  "private": true,
+  "bin": {
+    "gitflic-mcp": "server.mjs"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "start": "node server.mjs"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "zod": "^3.25.76"
+  }
+}
