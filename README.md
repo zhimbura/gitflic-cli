@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="docs/public/_media/icon.svg" width="92" alt="gitflic-cli logo" />
+<img src="https://cli-gitflic.ru/_media/icon.svg" width="92" alt="gitflic-cli logo" />
 
 # gitflic-cli
 
