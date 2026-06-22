@@ -11,7 +11,12 @@
     "node": ">=18.0.0"
   },
   "scripts": {
-    "start": "node lib/gitflic.mjs"
+    "start": "node lib/gitflic.mjs",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "vitest": "^4.1.9"
+  }
 }
