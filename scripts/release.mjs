@@ -212,4 +212,4 @@ ok(`rendered docs/public/downloads/index.html (${versions.length} release${versi
 // ---- Don't clean dist/ — useful for the dev to inspect ----
 console.log(`\n${C.green(C.bold("Release ready."))}`);
 console.log(`  Commit when ready: ${C.cyan("git add . && git commit -m 'release: v" + finalVersion + "'")}`);
-console.log(`  Then run \`npm run docs:build\` and push — Timeweb serves docs/.vitepress/dist.`);
+console.log(`  Then run \`npm run docs:publish\` to build + push the site (incl. /downloads/) to the mirror.`);

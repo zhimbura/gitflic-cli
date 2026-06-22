@@ -2,16 +2,7 @@
 
 Все значимые изменения в `gitflic-cli`. Формат — приближённый к [Keep a Changelog](https://keepachangelog.com/).
 
-## [Unreleased]
-
-### Changed
-
-- **CI: переехали с `.gitlab-ci.yml` на `gitflic-ci.yaml`** — это **обязательное имя файла** для GitFlic CI (см. [docs](https://docs.gitflic.ru/en/cicd/pipeline/) и [CI/CD Settings](https://docs.gitflic.ru/en/cicd/cicd-settings/)). Старое имя `.gitlab-ci.yml` GitFlic в упор не видит, поэтому предыдущая версия CI **никогда не запускалась**.
-- **Убран `pages:` job.** GitFlic **не поддерживает** `pages` keyword (подтверждено [compare_yaml](https://docs.gitflic.ru/en/common/compare_yaml/) — строка `pages` есть только в колонке GitLab). Вместо него: `docs:archive` (downloadable artifact) + `release:docs` (на теге прикрепляет docs bundle к GitFlic release).
-- **Убран `default:` блок.** GitFlic его не поддерживает — перешли на `before_script:` per-job.
-- **Дока `docs/ci-cd.md`** переписана под реальный GitFlic-синтаксис (включая таблицу что НЕ поддерживается из GitLab keywords).
-
-## [0.3.0] — unreleased
+## [0.3.0] — 2026-06-23
 
 100% покрытие публичного REST API GitFlic — все 20 разделов (≈199 эндпоинтов со scope-вариантами). Бо́льшая часть протестирована вживую против `api.gitflic.ru` (62/62 проверки green). Подробности — в [api-coverage.md](api-coverage.md).
 
@@ -43,6 +34,18 @@
 - **BUG-001:** `mr diff` теперь декодирует HTML-entities (`&quot;`/`&lt;`/`&gt;`/`&amp;`) через `htmlUnescape()` — диффы читаемы; покрыто тестами.
 - **commit list** исправлен на `/commits`; **cherry-pick** — на `/branch/cherry-pick`.
 - **release-list** — `/release` вместо `/release/list` (404).
+
+## [0.2.0] — 2026-06-23
+
+> Не выпускалось отдельным тегом — вошло в 0.3.0.
+
+### Changed
+
+- **CI/CD выпилен.** Удалён `gitflic-ci.yaml` и страница `docs/ci-cd.md`: на публичном `gitflic.ru` нет shared runners, а self-hosted `runner.jar` требует платный VPS. Сборка/релиз — локально (`npm run build`, `npm run release`), дока — статикой на Timeweb.
+
+### Fixed
+
+- `cicd pipeline list` в pretty-режиме показывал `(no pipelines)` при наличии записей — реальный HAL-ключ `restPipelineModelList` (а не `pipelineList`). Поправлено в `lib/cmd/cicd.mjs` (со старыми ключами как fallback).
 
 ## [0.1.0] — 2026-06-22
 

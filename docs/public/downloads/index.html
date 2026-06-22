@@ -2,20 +2,42 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
+  <title>Релизы · gitflic-cli</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>gitflic-cli — релизы</title>
+  <link rel="icon" type="image/svg+xml" href="../_media/icon.svg" />
   <style>
-    body { font: 16px/1.6 -apple-system, system-ui, sans-serif; max-width: 640px; margin: 64px auto; padding: 0 20px; color: #222; }
-    h1 { color: #e8423a; }
-    a { color: #d4352e; }
-    code { background: rgba(232,66,58,0.08); padding: 1px 6px; border-radius: 3px; }
+    :root { --theme: #e8423a; --fg: #1a1a1a; --muted: #6c757d; --bg: #fff; --border: #e6e6e6; }
+    @media (prefers-color-scheme: dark) {
+      :root { --fg: #e8e8e8; --muted: #9aa0a6; --bg: #0f1115; --border: #2a2d33; }
+    }
+    body { font: 16px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; max-width: 720px; margin: 40px auto; padding: 0 20px; color: var(--fg); background: var(--bg); }
+    h1 { font-size: 1.6rem; margin: 0 0 8px; }
+    .lede { color: var(--muted); margin: 0 0 28px; }
+    a { color: var(--theme); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    ul { list-style: none; padding: 0; }
+    li { padding: 10px 14px; border: 1px solid var(--border); border-radius: 6px; margin-bottom: 8px; }
+    .meta { color: var(--muted); font-size: 0.9em; margin-left: 8px; }
+    .back { display: inline-block; margin-bottom: 18px; }
+    code { background: rgba(0,0,0,0.05); padding: 1px 6px; border-radius: 3px; font-size: 0.9em; }
   </style>
 </head>
 <body>
-  <h1>gitflic-cli — артефакты релизов</h1>
-  <p>Здесь появятся портативные <code>tar.gz</code>-бандлы релизов (по одному на версию).
-     Список пересобирается командой <code>npm run release</code>.</p>
-  <p>Пока релизов нет — собери из исходников: <code>git clone …</code> → <code>bash install.sh</code>.</p>
-  <p>← <a href="/releases/">Документация по релизам</a> · <a href="/">Главная</a></p>
+  <a class="back" href="../">← на главную документацию</a>
+  <h1>Релизы gitflic-cli</h1>
+  <p class="lede">
+    Каждый релиз — это портативный tar.gz с <code>bin/</code>, <code>lib/</code>, <code>package.json</code>, инсталляторами.
+    Без внешних зависимостей: распакуй → <code>bash install.sh</code> → используй <code>gitflic</code>.
+  </p>
+  <ul>
+      <li>
+        <a href="gitflic-cli-0.3.0.tar.gz" download>gitflic-cli-0.3.0.tar.gz</a>
+        <span class="meta">— bundled at release time</span>
+      </li>
+  </ul>
+  <p class="lede" style="margin-top:32px;font-size:0.9em">
+    Артефакты собираются локально (<code>scripts/build.mjs</code>) и публикуются на этом же сайте
+    через Timeweb Apps. Никакого S3, никакого CI-раннера. Подробнее — в <a href="../development.html">разделе разработки</a>.
+  </p>
 </body>
 </html>

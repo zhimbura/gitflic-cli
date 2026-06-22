@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.3.0 — unreleased — полное покрытие REST API (100%)
+## 0.3.0 — 2026-06-23 — полное покрытие REST API (100%)
 
 - **100% покрытие публичного REST API GitFlic** (все 20 разделов, ≈199 эндпоинтов со scope-вариантами). Каждый раздел доведён до полноты; см. таблицу в README/`docs/api-coverage.md`. Бо́льшая часть протестирована вживую против `api.gitflic.ru` на тестовом репозитории `tikhon/cli-e2e-test` (62/62 проверки green).
 - **Новые HTTP-хелперы** (`lib/http.mjs`): `httpText` (raw-контент, `Accept: */*` — иначе blob 406), `httpDownload` (бинарное скачивание в файл), `httpUploadFile` (raw-PUT файла для реестра пакетов). `Accept`/`parse`/`contentType` прокинуты в `httpWithRetry`.
@@ -21,7 +21,7 @@
 - **release-list bug-fix:** `/release` вместо `/release/list` (404).
 - Тесты: 166 unit-тестов (добавлены тесты `htmlUnescape`).
 
-## 0.2.0 — unreleased
+## 0.2.0 — 2026-06-23 (вышло вместе с 0.3.0; отдельного тега нет)
 
 - **CI/CD выпилен.** Удалён `gitflic-ci.yaml` и страница `docs/ci-cd.md`. На публичном `gitflic.ru` нет shared runners, а self-hosted `runner.jar` требует платный VPS — не наш путь. Вместо этого:
   - `npm run build` (`scripts/build.mjs`): локальный lint всех `.mjs`, JSON-валидация, `vitest`, `tar.gz` portable-бандла в `dist/`.
