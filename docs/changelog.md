@@ -4,11 +4,12 @@
 
 ## [Unreleased]
 
-### Added
+### Changed
 
-- Документация на Docsify (`docs/`) с навигацией, поиском, copy-code.
-- GitFlic CI pipeline (`.gitlab-ci.yml`): lint + test (Node 18/20/22) + docs pages.
-- `scripts/serve-docs.mjs` — zero-dep Node HTTP-сервер для локального preview docs.
+- **CI: переехали с `.gitlab-ci.yml` на `gitflic-ci.yaml`** — это **обязательное имя файла** для GitFlic CI (см. [docs](https://docs.gitflic.ru/en/cicd/pipeline/) и [CI/CD Settings](https://docs.gitflic.ru/en/cicd/cicd-settings/)). Старое имя `.gitlab-ci.yml` GitFlic в упор не видит, поэтому предыдущая версия CI **никогда не запускалась**.
+- **Убран `pages:` job.** GitFlic **не поддерживает** `pages` keyword (подтверждено [compare_yaml](https://docs.gitflic.ru/en/common/compare_yaml/) — строка `pages` есть только в колонке GitLab). Вместо него: `docs:archive` (downloadable artifact) + `release:docs` (на теге прикрепляет docs bundle к GitFlic release).
+- **Убран `default:` блок.** GitFlic его не поддерживает — перешли на `before_script:` per-job.
+- **Дока `docs/ci-cd.md`** переписана под реальный GitFlic-синтаксис (включая таблицу что НЕ поддерживается из GitLab keywords).
 
 ## [0.1.0] — 2026-06-22
 

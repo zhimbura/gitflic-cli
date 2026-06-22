@@ -1,67 +1,81 @@
-# CI/CD и GitFlic Pages
+# CI/CD
 
-GitFlic CI использует **GitLab-compatible** синтаксис (`gitlab-ci.yml`). Конфиг лежит в `.gitlab-ci.yml` в корне репо.
+GitFlic CI/CD живёт в файле **`gitflic-ci.yaml`** в корне репо.
 
-## Что гоняется в CI
+> **Не `.gitlab-ci.yml`!** GitFlic ищет файл с именем `gitflic-ci.yaml` (см. [Pipeline docs](https://docs.gitflic.ru/en/cicd/pipeline/) и [CI/CD Settings](https://docs.gitflic.ru/en/cicd/cicd-settings/) — поле «Configuration File Path»). Старое имя GitLab-стиля GitFlic в упор не видит.
+
+## Синтаксис
+
+GitFlic CI синтаксис **очень похож на GitLab CI**, но не идентичен. Полный reference: <https://docs.gitflic.ru/en/cicd/gitflic-ci-yaml/>. Таблица отличий от GitLab: <https://docs.gitflic.ru/en/common/compare_yaml/>.
+
+**Поддерживаются:** `stages`, `variables`, `before_script`/`after_script` (per-job или глобально), `image`, `script`/`scripts`, `artifacts` (`paths`, `name`, `expire_in`, `reports.junit`), `needs`, `when`, `rules` (`if`, `changes`, `variables`, `when`, `allow_failure`), `tags`, `parallel:matrix`, `cache` (`paths`, `key`), `include` (`local`, `project`, `remote`, `component`), `release`, `trigger`, `environment`, `extends`.
+
+**НЕ поддерживаются** (по сравнению с GitLab):
+
+| Keyword | Что вместо |
+|---|---|
+| `pages` (и `pages.publish`, `pages.path_prefix`) | **`pages` в GitFlic НЕ СУЩЕСТВУЕТ.** Docs публикуем как downloadable artifact + (на теге) как asset в GitFlic release. |
+| `default:` (job-level defaults) | `before_script:` / `after_script:` на верхнем уровне файла или per-job. |
+| `coverage`, `dependencies`, `retry`, `timeout`, `inherit` | Нет аналога. |
+| `parallel` (как map) | Только `parallel:matrix` (список словарей). |
+| `cache:untracked`, `cache:when`, `cache:policy`, `cache:fallback_keys` | Только `cache:paths` + `cache:key`. |
+| `include:template`, `include:integrity` | Только `local`, `project`, `remote`, `component`. |
+| `services:docker`, `services:kubernetes`, `services:pull_policy` | Нет. |
+| `trigger:branch`, `trigger:inputs`, `secrets:*` | Только `trigger:project`, `trigger:include`. |
+| `id_tokens`, `hooks`, `identity`, `resource_group` | Нет. |
+
+## Что гоняется в нашем CI
 
 ```yaml
 stages:
   - validate
   - test
   - docs
-  - pages
+  - release
 ```
 
 | Stage | Job | Что делает |
 |---|---|---|
-| validate | `lint` | `node --check` на всех .mjs файлах + json-валидация `package.json` |
-| test | `test:node18` | vitest на Node 18 |
-| test | `test:node20` | vitest на Node 20 |
-| test | `test:node22` | vitest на Node 22 (latest LTS) |
-| docs | `docs:build` | (no-op — Docsify is build-free) проверка что `docs/index.html` существует + curl local server returns 200 |
-| pages | `pages` | Архивирует `docs/` → публикует через GitFlic Pages |
+| `validate` | `lint` | `node --check` всех .mjs + JSON-валидация + sanity-checks `docs/` + `bash -n` на installer'ах |
+| `test` | `test:node18` / `test:node20` / `test:node22` | vitest на трёх LTS Node параллельно (отдельные jobs на разных image'ах) |
+| `docs` | `docs:verify` | Запускает `scripts/serve-docs.mjs`, проверяет `curl /`, `curl /_sidebar.md`, `curl /README.md` |
+| `release` | `docs:archive` | `rsync docs/ → docs-site/`, публикует как **artifact** (zip-скачиваемый с pipeline page) |
+| `release` | `release:docs` | На git tag → создаёт **GitFlic release** через `release:` keyword, имя/тег подставляются из `$CI_COMMIT_TAG` |
 
 ## Pipeline badge
 
 Добавь в README:
 
 ```markdown
-[![Pipeline](https://gitflic.ru/project/tikhon/gitflic-cli/badges/master/pipeline.svg)](https://gitflic.ru/project/tikhon/gitflic-cli/pipelines)
+[![Pipeline](https://gitflic.ru/project/tikhon/gitflic-cli/badges/master/pipeline.svg)](https://gitgitflic.ru/project/tikhon/gitflic-cli/pipelines)
 ```
 
-## Включение GitFlic Pages
+## Где посмотреть
 
-Одноразовая настройка (не через git):
+- **Pipelines:** <https://gitflic.ru/project/tikhon/gitflic-cli/-/ci-cd/pipelines>
+- **Settings:** <https://gitflic.ru/project/tikhon/gitflic-cli/-/settings/ci-cd> (можно поменять путь к yaml-файлу, lifetime, переменные, опасная зона «очистить логи»)
+- **Runners:** <https://gitflic.ru/project/tikhon/gitflic-cli/-/settings/agents> (per-project или company-wide shared)
 
-1. Открой <https://gitflic.ru/project/tikhon/gitflic-cli/-/settings/pages>
-2. **Path**: `/docs`
-3. **Branch**: `master` (или где у тебя main)
-4. Save.
+## Как получить docs
 
-После первого успешного `pages` job в CI — сайт будет доступен по адресу:
+Есть **три** способа добраться до `docs/`:
 
-```
-https://tikhon.gitflic.io/gitflic-cli/
-```
+### 1. Скачать artifact с pipeline page
 
-(Или какой URL даёт GitFlic для твоего проекта.)
+1. Открой любой pipeline → `docs:archive` job → вкладка **Artifacts**.
+2. Скачай `gitflic-cli-docs.zip` — там весь `docs/` (включая `_sidebar.md`, `coverpage.md`, `_media/`).
+3. `unzip` и `open index.html` локально.
 
-## Альтернатива: ручная публикация в Pages branch
+### 2. Скачать с GitFlic release (на tag)
 
-Если автоматический `pages:` job не подходит, можно вручную:
+Когда пушишь тег (например `v0.2.0`):
 
-```bash
-git checkout --orphan pages
-git rm -rf .
-cp -r docs/* .
-git add .
-git commit -m "docs: published site"
-git push origin pages
-```
+1. Pipeline запускает `docs:archive` (rules: `$CI_COMMIT_TAG`).
+2. `release:docs` через keyword `release:` создаёт релиз с `$CI_COMMIT_TAG`.
+3. Архив docs прикрепляется к релизу.
+4. Скачать: `https://gitflic.ru/project/tikhon/gitflic-cli/-/releases/$CI_COMMIT_TAG`.
 
-В настройках Pages выбрать branch = `pages`, path = `/`.
-
-## Локальный preview docs
+### 3. Локально через dev-сервер
 
 ```bash
 npm run docs:dev
@@ -69,6 +83,10 @@ npm run docs:dev
 ```
 
 Использует zero-dep Node HTTP-сервер из `scripts/serve-docs.mjs`.
+
+## Локальный preview vs CI
+
+`scripts/serve-docs.mjs` идентичен тому, что крутится в `docs:verify` job — поэтому если локально `npm run docs:dev` показывает корректный сайт, то и CI его примет.
 
 ## Что проверяет `lint` job
 
@@ -84,28 +102,57 @@ done
 node -e "JSON.parse(require('fs').readFileSync('package.json', 'utf8'))"
 node -e "JSON.parse(require('fs').readFileSync('vitest.config.mjs', 'utf8'))"
 
-# docs/ has index.html
+# docs/ has index.html, _sidebar.md, README.md
 test -f docs/index.html
 test -f docs/_sidebar.md
+test -f docs/README.md
+
+# Shell installers parseable
+bash -n install.sh
+bash -n uninstall.sh
 ```
 
-Если хочется полноценный eslint — отдельный PR. Пока что `node --check` ловит 90% синтаксических ошибок и zero зависимостей.
+Если хочется полноценный eslint — отдельный PR. Пока что `node --check` ловит ~90% синтаксических ошибок и требует **zero зависимостей**.
 
 ## Что проверяет `test` job
 
-`npm install` + `npm test` (vitest run). Node 18, 20, 22 параллельно — матрица.
+`npm ci` + `npm test` (vitest run). Прогоняется на Node 18 / 20 / 22 параллельно в трёх отдельных jobs (по image'у).
 
-## Что проверяет `docs:build` job
+## Что проверяет `docs:verify` job
 
-Просто грепает что `docs/index.html` существует и содержит ожидаемые элементы (search box, sidebar slot). Никакой реальной сборки — Docsify это CDN-loaded runtime.
+Запускает `node scripts/serve-docs.mjs &` в фоне, ждёт 2 секунды, потом:
+
+- `curl -sf http://127.0.0.1:3000/` → должен вернуть 200 и содержать `gitflic` (проверка что index.html не пустой).
+- `curl -sf http://127.0.0.1:3000/_sidebar.md` → должен вернуть 200 и содержать `Аутентификация` (sidebar на месте).
+- `curl -sf http://127.0.0.1:3000/README.md` → должен вернуть 200.
+
+Никакой реальной сборки — Docsify это CDN-loaded runtime.
+
+## Переменные окружения
+
+GitFlic прокидывает в job:
+
+- `CI_PROJECT_URL` — `https://gitflic.ru/project/tikhon/gitflic-cli`
+- `CI_PROJECT_NAME` — `gitflic-cli`
+- `CI_PROJECT_NAMESPACE` — `tikhon`
+- `CI_COMMIT_REF_NAME` — текущая ветка / тег
+- `CI_COMMIT_SHA` — полный SHA
+- `CI_COMMIT_TAG` — имя тега (пусто если не тег)
+- `CI_PIPELINE_ID`, `CI_PIPELINE_IID` — pipeline ID
+- `CI_REGISTRY` — `registry.gitflic.ru`
+- `CI_JOB_TOKEN` — токен для скачивания артефактов / публикации в registry
+- `GITFLIC_USER_EMAIL`, `GITFLIC_USER_LOGIN` — кто запустил pipeline
+- `CI_SERVER_URL`, `CI_SERVER_REST_URL` — URL самого GitFlic
+
+Полный список: <https://docs.gitflic.ru/en/cicd/gitflic-ci-yaml/#cicd.vars.predefined>.
 
 ## Расширение CI
 
 Что легко добавить при необходимости:
 
-- `release` job по git tag → собрать архив + прикрепить к release (нужен API token).
-- `docker` job → собрать минимальный образ (multi-stage с node:alpine).
-- `security` job → `npm audit` (но у нас zero deps, нечего аудитить).
-- `coverage` job → vitest --coverage + codecov (нужен external token).
+- **`release:cli`** — на теге собирать `tar.gz` с `bin/` + `lib/` + `package.json`, прикреплять к release через `release:assets:links`.
+- **`registry:docker`** — собрать образ `node:alpine` + скопировать `bin/`, `lib/`, опубликовать в `registry.gitflic.ru/project/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME`.
+- **`security`** — `npm audit --audit-level=high` (но у нас zero deps, нечего аудитить).
+- **`docs:deploy`** — задеплоить docs-site на внешний хостинг через `scp` + переменную `SSH_KEY`.
 
-Если что-то из этого нужно — issue/PR.
+Если что-то нужно — issue/PR.

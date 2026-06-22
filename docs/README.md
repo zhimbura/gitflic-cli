@@ -55,7 +55,7 @@ gitflic-cli/
 ├── docs/                    # эта документация
 ├── scripts/                 # служебные (docs dev server)
 ├── install.sh / install.ps1 # установщики
-└── .gitlab-ci.yml           # GitFlic CI (test + lint + docs)
+└── gitflic-ci.yaml          # GitFlic CI (lint + test + docs archive + release)
 ```
 
 ## Лицензия

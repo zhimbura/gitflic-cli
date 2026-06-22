@@ -19,7 +19,7 @@ gitflic-cli/
 ├── docs/                        # эта документация (Docsify)
 ├── scripts/                     # утилиты (docs dev-server)
 ├── install.sh / install.ps1      # установщики
-├── .gitlab-ci.yml               # GitFlic CI
+├── gitflic-ci.yaml              # GitFlic CI pipeline
 ├── package.json                 # только devDeps (vitest)
 └── vitest.config.mjs
 ```
