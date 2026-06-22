@@ -1,0 +1,53 @@
+# gitflic-cli
+
+> Полнофункциональный консольный клиент (CLI) для REST API GitFlic (gitflic.ru). 100% покрытие — ~199 эндпоинтов в 20 модулях: merge-реквесты, релизы, задачи, ветки, теги, коммиты, файлы, проекты, пользователи/команды/компании, окружения, вебхуки, реестр пакетов, CI/CD, раннеры, админ, SAML. Ноль внешних зависимостей (чистый Node ESM ≥18). Есть MCP-сервер для AI-агентов. Документация на русском.
+
+Ключевые факты:
+- Установка: `git clone git@gitflic.ru:tikhon/gitflic-cli.git && bash install.sh` — один бинарь `gitflic`.
+- Аутентификация: `gitflic auth login --token <token>` (хранится в macOS Keychain / Linux libsecret / chmod 0600).
+- Машинный вывод: каждая команда поддерживает `--format json` (дружелюбно к скриптам и AI-агентам).
+- Полный текст всей документации одним файлом: https://cli-gitflic.ru/llms-full.txt
+
+## Документация
+
+- [Обзор](https://cli-gitflic.ru/index.html): что умеет gitflic-cli, архитектура, за 30 секунд.
+- [Быстрый старт](https://cli-gitflic.ru/quickstart.html): первые команды, токен, примеры для AI-агентов.
+- [Установка](https://cli-gitflic.ru/install.html): SSH/HTTPS, кастомный путь, Windows.
+- [Покрытие API](https://cli-gitflic.ru/api-coverage.html): таблица 20 разделов REST GitFlic и статус покрытия.
+- [Флаги](https://cli-gitflic.ru/flags.html): глобальные и модульные флаги (--scope, --fmt, --team/--company, --all, --format и т.д.).
+- [ENV переменные](https://cli-gitflic.ru/env.html): GITFLIC_TOKEN, GITFLIC_API_BASE и прочие.
+- [Известные проблемы](https://cli-gitflic.ru/known-issues.html): особенности GitFlic API и обходные пути.
+- [Changelog](https://cli-gitflic.ru/changelog.html): история версий.
+
+## Команды
+
+- [Все команды](https://cli-gitflic.ru/commands/index.html): индекс всех модулей.
+- [Merge Requests](https://cli-gitflic.ru/commands/mr.html): list/view/diff/create/approve/merge/close + обсуждения + approval rules.
+- [Релизы](https://cli-gitflic.ru/commands/release.html): CRUD + загрузка/скачивание файлов релиза.
+- [Задачи](https://cli-gitflic.ru/commands/issue.html): CRUD + комментарии + связи + вложения.
+- [Ветки и теги](https://cli-gitflic.ru/commands/branch-tag.html): ветки, теги, branch/tag protection.
+- [Коммиты и файлы](https://cli-gitflic.ru/commands/commit-blob.html): коммиты, диффы, cherry-pick, blob/архив.
+- [Проекты](https://cli-gitflic.ru/commands/project.html): CRUD, члены, форки, зеркала, импорт, вложения.
+- [Пользователи и команды](https://cli-gitflic.ru/commands/user-team.html): user, team, company.
+- [CI/CD, вебхуки, агенты](https://cli-gitflic.ru/commands/cicd-webhook.html): пайплайны, задачи, артефакты, вебхуки, раннеры.
+- [Реестр пакетов](https://cli-gitflic.ru/commands/registry.html): пакеты + загрузка/скачивание для maven/npm/pypi/nuget/cargo/conda/… .
+- [Настройки](https://cli-gitflic.ru/commands/settings.html): ssh-ключи, oauth, токены, смена профиля.
+- [Админ](https://cli-gitflic.ru/commands/admin.html): админ-эндпоинты инстанса.
+- [SAML SSO](https://cli-gitflic.ru/commands/saml.html): SAML-подключения (админ).
+
+## Аутентификация
+
+- [Обзор](https://cli-gitflic.ru/auth/index.html): резолв токена, хранилища секретов.
+- [auth login](https://cli-gitflic.ru/auth/login.html): вход с валидацией токена.
+- [Multi-account](https://cli-gitflic.ru/auth/multi-account.html): несколько аккаунтов.
+- [Per-project bindings](https://cli-gitflic.ru/auth/per-project.html): привязка проектов к аккаунтам.
+
+## Для AI-агентов
+
+- [MCP-сервер](https://cli-gitflic.ru/mcp-server.html): Model Context Protocol сервер — типизированные тулы поверх CLI для Claude Code, Cursor и др.
+
+## Optional
+
+- [Локальная разработка](https://cli-gitflic.ru/development.html): сборка, тесты, деплой доки.
+- [Git credential helper](https://cli-gitflic.ru/credential-helper.html).
+- [Релизы и артефакты](https://cli-gitflic.ru/releases/index.html): где скачать tar.gz.
