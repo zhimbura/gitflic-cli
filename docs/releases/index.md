@@ -22,14 +22,13 @@ gitflic --help
 ```bash
 npm run build                          # lint + test + tar.gz → dist/
 npm run release -- --version 0.3.0     # bump + пересборка + копия в docs/public/downloads/
-npm run docs:build                     # сборка VitePress → docs/.vitepress/dist (для загрузки на Timeweb)
-git add . && git commit -m "release: v0.3.0"
-git push                               # GitHub-зеркало → Timeweb подхватит статику
+git add . && git commit -m "release: v0.3.0" && git push   # исходники в основной репо
+npm run docs:publish                   # build + публикация сайта в GitHub-зеркало
 ```
 
 ## Деплой
 
-Дока — статический VitePress-сайт. `npm run docs:build` собирает `docs/.vitepress/dist`; именно эта папка заливается на Timeweb (через GitHub-зеркало). Артефакты релизов попадают в неё автоматически как `public/` → `/downloads/`.
+Дока — статический VitePress-сайт (gh-pages style). `npm run docs:publish` собирает `docs/.vitepress/dist` и публикует его в GitHub-зеркало [`zhimbura/gitflic-cli-docs`](https://github.com/zhimbura/gitflic-cli-docs), корень которого Timeweb раздаёт статикой. Артефакты релизов попадают в сборку как `docs/public/` → `/downloads/`.
 
 ## Почему не GitFlic Releases / S3
 

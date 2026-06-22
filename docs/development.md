@@ -98,6 +98,7 @@ Docs лежат в `docs/` — это **VitePress** сайт (Markdown + кон�
 npm run docs:dev       # dev-server с HMR (по умолчанию :5173)
 npm run docs:build     # статическая сборка → docs/.vitepress/dist
 npm run docs:preview   # локальный предпросмотр собранного сайта
+npm run docs:publish   # build + пуш собранного сайта в GitHub-зеркало (деплой)
 ```
 
 - Страницы — обычный Markdown в `docs/**.md`. Навигация/сайдбар — в `docs/.vitepress/config.mjs`.
@@ -126,8 +127,8 @@ npm run docs:build                   # собрать VitePress перед де�
 Почему так: на публичном `gitflic.ru` нет shared runners (нужна Company + self-hosted `runner.jar` — это платный VPS), и покупать S3 ради одного tar.gz тоже не хочется. Поэтому:
 
 1. CI/CD выпилен (`gitflic-ci.yaml` удалён).
-2. Документация — статический **VitePress** сайт (`npm run docs:build` → `docs/.vitepress/dist`), хостится на **Timeweb Apps** (через GitHub-зеркало).
-3. Артефакты релизов лежат в `docs/public/downloads/` → попадают в ту же статику под тем же доменом (`/downloads/`).
+2. Документация — статический **VitePress** сайт. Исходник (`docs/`) живёт в этом репо; собранный сайт публикуется в **GitHub-зеркало** [`zhimbura/gitflic-cli-docs`](https://github.com/zhimbura/gitflic-cli-docs) (его корень = собранный сайт, без build-шага), а **Timeweb Apps** раздаёт зеркало статикой. Деплой одной командой: `npm run docs:publish` (= `docs:build` + пуш `dist` в зеркало, gh-pages style).
+3. Артефакты релизов лежат в `docs/public/downloads/` → попадают в собранный сайт под тем же доменом (`/downloads/`).
 
 Workflow релиза целиком:
 
@@ -135,17 +136,15 @@ Workflow релиза целиком:
 # 1. Поправил код, прогнал тесты
 npm run build
 
-# 2. Бамп + ship в docs/public/downloads/
+# 2. Бамп + ship tar.gz в docs/public/downloads/
 npm run release -- --version 0.3.0
 
-# 3. Собрать статику дoки
-npm run docs:build
-
-# 4. Коммит
+# 3. Коммит исходников (код + docs/) в основной репо
 git add . && git commit -m "release: v0.3.0"
-
-# 5. Пуш (GitHub-зеркало → Timeweb задеплоит собранную статику)
 git push
+
+# 4. Собрать и опубликовать доку в зеркало (Timeweb подхватит)
+npm run docs:publish
 ```
 
 ## Отладка

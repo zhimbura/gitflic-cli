@@ -1,12 +1,17 @@
 # Timeweb Apps config for the gitflic-cli documentation site.
-# Docs are a VitePress static site (docs/). `npm run docs:build` produces the
-# static bundle in docs/.vitepress/dist, which is what gets served.
-# Flow: push -> GitHub mirror -> Timeweb builds & serves the static output.
+#
+# Deploy model (gh-pages style):
+#   1. Docs live as VitePress source in THIS repo under docs/.
+#   2. `npm run docs:build` → docs/.vitepress/dist (static site).
+#   3. The built dist is published to the GitHub docs mirror
+#      (github.com/zhimbura/gitflic-cli-docs, branch main) — its root IS the
+#      built site (no build step on the mirror).
+#   4. Timeweb serves that mirror's root statically.
+# Release tarballs ride along under /downloads/ (docs/public/downloads/).
 app:
   name: gitflic-cli-docs
   type: frontend
-  # Static-site build: install deps, build VitePress, serve the dist dir.
   framework: static
-  build_cmd: npm ci && npm run docs:build
-  index_dir: docs/.vitepress/dist
-  comment: gitflic-cli docs (VitePress) + release tarballs under /downloads/
+  # The mirror root already contains the built VitePress output.
+  index_dir: /
+  comment: gitflic-cli docs (VitePress, prebuilt) served from the github mirror
