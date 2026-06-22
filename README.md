@@ -78,6 +78,36 @@ gitflic auth status                             # identity от work
 
 `auth list` помечает активный аккаунт звёздочкой.
 
+### Привязка проекта к аккаунту (per-project binding)
+
+Если для разных проектов нужны разные аккаунты (например, в `FerdBur/wave` — work-токен, в личном — personal), используй `auth bind`:
+
+```bash
+gitflic auth login --as work    --token xxxx
+gitflic auth login --as personal --token yyyy
+gitflic auth bind FerdBur/wave work       # все команды для FerdBur/wave → work-токен
+gitflic auth bind tikhon/personal personal
+
+gitflic mr list --project FerdBur/wave   # автоматически подставит token:work
+gitflic mr list --project tikhon/personal # автоматически подставит token:personal
+
+gitflic auth bindings                     # список всех привязок
+gitflic auth unbind FerdBur/wave          # убрать привязку
+```
+
+**Полный порядок резолва токена** в `gitflic`:
+
+1. `--token <flag>` (per-call override)
+2. `GITFLIC_TOKEN` env var
+3. **Per-project binding** — `account-bind:<project>` если `flags.project` задан
+4. `token:<active-account>` (если `auth switch`)
+5. `token` (legacy / default account)
+6. die с подсказкой про `auth login`
+
+Если привязка указывает на аккаунт без токена — warning в stderr + fallthrough на active-account.
+
+
+
 ### Альтернативы (env var / .env)
 
 Если не хотите хранить токен в CLI — через окружение:
