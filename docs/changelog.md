@@ -25,7 +25,7 @@
 - **Format flags** `--color` / `--no-color` + env `NO_COLOR` / `FORCE_COLOR`.
 - **File-based project-UUID cache** + `gitflic cache` команда.
 - **HTTP retry** on 429/502/503/504 с exponential backoff + jitter.
-- **MCP-сервер** — 71 типизированный тул для AI-агентов.
+- **MCP-сервер** — 77 типизированных тулов для AI-агентов.
 - **Multipart upload** для release assets + issue attachments.
 
 ### Fixed

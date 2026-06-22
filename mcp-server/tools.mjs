@@ -10,6 +10,99 @@ export const TOOLS = [
     inputSchema: { type: "object", properties: {} },
     handler: () => ["auth"],
   },
+  // ===== auth: multi-account + per-project bindings =====================
+  {
+    name: "gitflic_auth_login",
+    description:
+      "Validate a GitFlic API token against /user/me, then store it in the OS keychain (macOS Keychain / Linux libsecret) or chmod-0600 file. Refuses to store an invalid token. Use --as <name> to store under a named account; --stdin to read the token from stdin.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        token: { type: "string", description: "API token (else read from stdin if stdin=true)" },
+        stdin: { type: "boolean", description: "Read token from stdin" },
+        as: { type: "string", description: "Named account (e.g. 'work', 'personal')" },
+        apiBase: { type: "string", description: "Override API base (for self-hosted)" },
+      },
+    },
+    handler: (a) => {
+      const args = ["auth", "login"];
+      if (a.token) args.push("--token", a.token);
+      if (a.stdin) args.push("--stdin");
+      if (a.as) args.push("--as", a.as);
+      if (a.apiBase) args.push("--api-base", a.apiBase);
+      return args;
+    },
+  },
+  {
+    name: "gitflic_auth_logout",
+    description:
+      "Remove a stored token. Default removes the active account. Pass --as <name> to remove a specific named account. Pass --all to remove every token (and all per-project bindings).",
+    inputSchema: {
+      type: "object",
+      properties: {
+        as: { type: "string", description: "Remove only token:<name>" },
+        all: { type: "boolean", description: "Remove every account + binding" },
+      },
+    },
+    handler: (a) => {
+      const args = ["auth", "logout"];
+      if (a.as) args.push("--as", a.as);
+      if (a.all) args.push("--all");
+      return args;
+    },
+  },
+  {
+    name: "gitflic_auth_list",
+    description:
+      "List all known accounts (default + named) with masked token values. Marks the active account with '*'. Use before switching or binding to confirm available identities.",
+    inputSchema: { type: "object", properties: {} },
+    handler: () => ["auth", "list"],
+  },
+  {
+    name: "gitflic_auth_switch",
+    description:
+      "Make <name> the active account. Subsequent tool calls without a per-project binding resolve to this account's token. Refuses if no token is stored for the named account.",
+    inputSchema: {
+      type: "object",
+      required: ["name"],
+      properties: {
+        name: { type: "string", description: "Account name to activate" },
+      },
+    },
+    handler: (a) => ["auth", "switch", a.name],
+  },
+  {
+    name: "gitflic_auth_bind",
+    description:
+      "Bind <project> (owner/alias) to <account>. All subsequent commands scoped to that project resolve to <account>'s token, overriding the active account. Refuses if <account> has no token stored. Use to route different repos to different identities (work vs personal).",
+    inputSchema: {
+      type: "object",
+      required: ["project", "account"],
+      properties: {
+        project: { type: "string", description: "owner/alias, e.g. 'FerdBur/wave'" },
+        account: { type: "string", description: "account name (must already exist via auth_login --as)" },
+      },
+    },
+    handler: (a) => ["auth", "bind", a.project, a.account],
+  },
+  {
+    name: "gitflic_auth_unbind",
+    description: "Remove the binding for <project>. Falls back to active-account token resolution for that project afterwards.",
+    inputSchema: {
+      type: "object",
+      required: ["project"],
+      properties: {
+        project: { type: "string", description: "owner/alias to unbind" },
+      },
+    },
+    handler: (a) => ["auth", "unbind", a.project],
+  },
+  {
+    name: "gitflic_auth_bindings",
+    description: "List all current project → account bindings. Sorted alphabetically by project.",
+    inputSchema: { type: "object", properties: {} },
+    handler: () => ["auth", "bindings"],
+  },
   {
     name: "gitflic_project_resolve",
     description:

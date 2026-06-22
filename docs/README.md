@@ -28,7 +28,7 @@ gitflic mr create --title "Fix login" --to main
 ## Что внутри
 
 - **~150 эндпоинтов GitFlic REST** — MR, релизы, задачи, ветки, теги, коммиты, файлы, вебхуки, CI/CD, окружения, пакеты, администрирование.
-- **MCP-сервер** для AI-агентов (Claude Code, Cursor и т.п.) — 71 типизированный тул.
+- **MCP-сервер** для AI-агентов (Claude Code, Cursor и т.п.) — 77 типизированных тулов.
 - **Безопасное хранение токенов** — macOS Keychain / Linux libsecret / chmod 0600 fallback (как у `gh`/`glab`).
 - **Multi-account** + **per-project bindings** — для людей, у которых несколько личностей на GitFlic (работа + личное).
 - **NDJSON streaming** + пагинация `--all` + авто-ретраи на 429/502/503/504.

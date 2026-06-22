@@ -6,7 +6,7 @@
 
 - ~150 эндпоинтов GitFlic REST
 - macOS Keychain / Linux libsecret для токенов
-- MCP-сервер для AI-агентов (71 тул)
+- MCP-сервер для AI-агентов (77 тулов)
 - Multi-account + per-project bindings
 
 [Начать](#/quickstart) · [GitFlic →](https://gitflic.ru/project/tikhon/gitflic-cli)
