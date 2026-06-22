@@ -213,4 +213,4 @@ console.log(`  ${C.cyan("Node target:")}  ${JSON.parse(readFileSync(join(ROOT, "
 if (!SKIP_BUNDLE) {
   console.log(`  ${C.cyan("Artifact:")}     dist/gitflic-cli-${JSON.parse(readFileSync(join(ROOT, "package.json"), "utf8")).version}.tar.gz`);
 }
-console.log(`\n${C.green(C.bold("Build OK."))} Next: \`node scripts/release.mjs\` to ship to docs/releases/`);
+console.log(`\n${C.green(C.bold("Build OK."))} Next: \`node scripts/release.mjs\` to ship to docs/public/downloads/`);

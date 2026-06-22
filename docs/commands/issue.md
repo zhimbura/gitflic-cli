@@ -1,13 +1,13 @@
 # Задачи (`gitflic issue ...`)
 
-Полный CRUD + комментарии + relations + attachment upload.
+Полный CRUD + комментарии + связи (relations) + работа с файлами + загрузка вложений.
 
 ## Подкоманды
 
 ```bash
 gitflic issue list --project FerdBur/wave                          # все
 gitflic issue list --project FerdBur/wave --status OPEN             # фильтр по статусу
-gitflic issue list --project FerdBur/wave --all --format json      # с пагинацией
+gitflic issue list --project FerdBur/wave --all --format json      # с автопагинацией
 gitflic issue view <localId> --project FerdBur/wave                # детали
 ```
 
@@ -34,7 +34,8 @@ gitflic issue edit <localId> --project FerdBur/wave \
   --title "New title" \
   --description "..." \
   --status IN_PROGRESS \
-  --assign-to <userUuid>
+  --assign-to <userUuid> \
+  --label <labelUuid>
 ```
 
 ### close / reopen
@@ -50,7 +51,7 @@ gitflic issue reopen <localId> --project FerdBur/wave    # shortcut: edit --stat
 gitflic issue delete <localId> --project FerdBur/wave
 ```
 
-### Comments
+### Комментарии
 
 ```bash
 gitflic issue comments list <localId> --project FerdBur/wave
@@ -59,21 +60,49 @@ gitflic issue comments edit <localId> <noteUuid> "New text" --project FerdBur/wa
 gitflic issue comments delete <localId> <noteUuid> --project FerdBur/wave
 ```
 
-### Relations
+### Связи (relations)
+
+Связи между задачами (зависимости, блокировки, «связано с» и т.п.). Поддерживается полный CRUD.
 
 ```bash
 gitflic issue relations list <localId> --project FerdBur/wave
-# Связи между issue (blocks, relates-to, etc). Создание/edit — нет публичного API.
+
+# Создать связь с другой задачей (по её UUID)
+gitflic issue relations create <localId> <targetIssueUuid> RELATED --project FerdBur/wave
+# Типы: RELATED, AFFECTS_FORWARD, DEPENDENCY_FORWARD, ... (см. документацию GitFlic)
+
+# Удалить связь
+gitflic issue relations delete <localId> <targetIssueUuid> --project FerdBur/wave
 ```
 
-### Attachment upload
+### Файлы
+
+Просмотр и управление файлами, прикреплёнными к задаче. `link`/`unlink` оперируют уже загруженными в проект файлами по их UUID.
+
+```bash
+gitflic issue files list <localId> --project FerdBur/wave --format json
+
+# Привязать уже загруженный файл проекта к задаче
+gitflic issue files link <localId> <uploadFileUuid> --project FerdBur/wave
+
+# Отвязать (и удалить) файл от задачи
+gitflic issue files unlink <localId> <uploadFileUuid> --project FerdBur/wave
+```
+
+### Загрузка вложений
+
+`issue attach` — основной способ: загружает файл в проект и сразу привязывает его к задаче (upload + link одним вызовом).
+
+```bash
+gitflic issue attach <localId> ./screenshot.png --project FerdBur/wave
+gitflic issue attach <localId> ./logs.txt --name debug-logs.txt --project FerdBur/wave
+```
+
+Команда `issue attachment upload` оставлена как legacy-вариант (одиночный best-guess endpoint); для новых сценариев используйте `issue attach`.
 
 ```bash
 gitflic issue attachment upload <localId> ./screenshot.png --project FerdBur/wave
-gitflic issue attachment upload <localId> ./logs.txt --name debug-logs.txt --project FerdBur/wave
 ```
-
-Multipart upload, аналогично release asset.
 
 ## Пайплайн: triage
 

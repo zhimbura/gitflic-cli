@@ -3,8 +3,16 @@
 ```bash
 gitflic project list                                      # все доступные
 gitflic project list --scope my                           # только мои
-gitflic project list --scope public --q "wave"            # поиск
-gitflic project get tikhon/gitflic-cli                    # детали
+gitflic project list --scope shared                       # расшаренные мне
+gitflic project list --scope public --q "wave"            # поиск по публичным
+gitflic project get tikhon/gitflic-cli                    # детали (alias или UUID)
+```
+
+`project list` поддерживает фильтры и пагинацию: `--q <query>`, `--q-name <N>`, `--q-owner <O>`, `--page N`, `--size N`, `--all` (выгрузить все страницы).
+
+```bash
+# Поиск по имени и владельцу, JSON для агентов
+gitflic project list --scope public --q-name wave --q-owner FerdBur --format json
 ```
 
 ## CRUD
@@ -18,13 +26,45 @@ gitflic project create \
   --language "JavaScript" \
   --description "..."
 
-# edit
+# Создание под командой/компанией:
+gitflic project create --alias team-proj --title "Team Project" \
+  --owner-alias my-team --owner-alias-type TEAM
+
+# edit (PUT /project)
 gitflic project edit tikhon/my-project \
   --title "New title" \
-  --default-branch develop
+  --default-branch develop \
+  --public
 
 # delete
 gitflic project delete tikhon/my-project
+```
+
+### Настройки проекта
+
+`change-setting` обновляет настройки проекта (заголовок, описание, язык, темы) через `PUT .../setting/change-setting`:
+
+```bash
+gitflic project change-setting --project tikhon/wave \
+  --title "Wave" \
+  --description "Новое описание" \
+  --language Go \
+  --topics cli,api,gitflic
+```
+
+### Где можно создавать проекты
+
+```bash
+# Список владельцев (вы + ваши команды/компании), под которыми можно создать проект
+gitflic project allowed-owners --format json
+```
+
+### Размер хранилища
+
+```bash
+# Разбивка по размеру (по умолчанию — текущий --project)
+gitflic project project-size tikhon/wave
+gitflic project project-size --format json
 ```
 
 ## Members
@@ -32,48 +72,87 @@ gitflic project delete tikhon/my-project
 ```bash
 gitflic project member list --project tikhon/wave
 gitflic project member invite user-alias --project tikhon/wave --role DEVELOPER
-gitflic project member role user-alias --project tikhon/wave --role MAINTAINER
+gitflic project member role user-alias --project tikhon/wave --role ADMIN
 gitflic project member delete user-alias --project tikhon/wave
-# Роли: GUEST | REPORTER | DEVELOPER | MAINTAINER | OWNER
+# Роли: GUEST | REPORTER | DEVELOPER | ADMIN | OWNER
 ```
 
 ## Teams
 
 ```bash
 gitflic project team invite team-alias --project tikhon/wave --role DEVELOPER
+gitflic project team role team-alias --project tikhon/wave --role ADMIN
 gitflic project team delete team-alias --project tikhon/wave
+# Роли для команд: GUEST | REPORTER | DEVELOPER | ADMIN
 ```
 
-## Archive / files / social
+## Archive / files / attachments / social
 
 ```bash
-# Скачать архив
-gitflic project archive master --project tikhon/wave > /tmp/wave.tar.gz
+# Список файлов в дереве репозитория
+gitflic project files --project tikhon/wave --path src --branch master
 
-# Список файлов
-gitflic project files --project tikhon/wave --path src
-
-# Followers / stars
+# Followers / stars / forks
 gitflic project followers --project tikhon/wave
 gitflic project stars --project tikhon/wave
+gitflic project forked --project tikhon/wave
 ```
+
+### Вложения (attachments)
+
+```bash
+# Список прикреплённых файлов
+gitflic project upload-files --project tikhon/wave
+
+# Загрузить файл (multipart, до 10 МБ)
+gitflic project upload ./screenshot.zip --project tikhon/wave
+
+# Удалить вложение по UUID
+gitflic project delete-file <uploadFileUuid> --project tikhon/wave
+```
+
+> **Архив проекта.** `gitflic project archive [branch] [--out FILE]` реализован
+> (`GET .../file/getArchive`), но на публичном `api.gitflic.ru` эндпоинт возвращает
+> **404** — скачивание архива отключено (доступно только через веб-интерфейс).
+> Используйте `git clone`.
 
 ## Fork / mirror / import
 
 ```bash
-# Fork
+# Fork (POST .../create-fork) — форк под текущим юзером или другим владельцем
 gitflic project fork --project FerdBur/wave --new-alias my-fork
-# Создаёт форк под текущим юзером.
+gitflic project fork --project FerdBur/wave --new-alias team-fork \
+  --owner-alias my-team --private
 
-# Mirror (зеркало из другого git)
-gitflic project mirror --url https://github.com/foo/bar.git --type PULL --new-alias my-mirror
+# Создать новый mirror-проект (без --project)
+gitflic project create-mirror \
+  --url https://github.com/foo/bar.git \
+  --alias my-mirror \
+  --type PULL \
+  --login my-login --token-secret <secret> \
+  --ref-spec "+refs/heads/*:refs/heads/*"
 # type: PULL | PUSH
 
-# Import (импорт из external repo)
+# Превратить существующий проект в PUSH-зеркало
+gitflic project to-push-mirror --project tikhon/wave \
+  --source https://github.com/foo/bar.git \
+  --login my-login --token-secret <secret>
+
+# Принудительно синхронизировать зеркало
+gitflic project manual-update --project tikhon/my-mirror
+
+# Import (импорт из external repo, без --project)
 gitflic project import \
   --url https://github.com/foo/bar.git \
   --new-alias imported \
   --private
+```
+
+## Scripts
+
+```bash
+# Запустить скрипт проекта по UUID
+gitflic project run-script <scriptUuid> --project tikhon/wave
 ```
 
 ## Deploy tokens
@@ -81,8 +160,22 @@ gitflic project import \
 ```bash
 gitflic project deploy-token create --project tikhon/wave \
   --name "CI deploy" \
-  --scope READ_REPO
+  --scope REPOSITORY_READ \
+  --expires 2026-12-31T00:00:00Z
+# Скоупы: REPOSITORY_READ | REPOSITORY_WRITE
 # Для HTTPS push без пароля (вместо SSH).
+```
+
+> **HTTPS push с токеном** работает напрямую:
+> `git push https://oauth2:<TOKEN>@gitflic.ru/project/<owner>/<alias>.git <branch>`
+
+## Команды/компании как владельцы
+
+Многие операции принимают владельца через `--owner-alias` (+ `--owner-alias-type USER|TEAM|COMPANY` для `create`):
+
+```bash
+gitflic project create --alias x --title "X" --owner-alias acme --owner-alias-type COMPANY
+gitflic project fork --project FerdBur/wave --new-alias x --owner-alias acme
 ```
 
 ## Авто-детект проекта

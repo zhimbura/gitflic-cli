@@ -16,7 +16,7 @@ gitflic-cli/
 │   ├── tui.mjs                  # интерактивный браузер MR
 │   └── cmd/                     # один файл = один модуль
 ├── mcp-server/                  # MCP-сервер для AI-агентов
-├── docs/                        # эта документация (Docsify)
+├── docs/                        # эта документация (VitePress)
 ├── scripts/                     # утилиты (docs dev-server)
 ├── install.sh / install.ps1      # установщики
 ├── gitflic-ci.yaml              # (удалён в 0.2.0 — собираем локально)
@@ -65,7 +65,7 @@ export async function handle(ctx, sub, args, flags) {
 3. Если не требует `--project`, добавь в `GLOBAL` set.
 4. Напиши тесты в `lib/__tests__/<name>.test.mjs` (vitest).
 5. Если добавляешь новый sensitive параметр — обнови `isSensitiveKey()` в `lib/secret.mjs`.
-6. Обнови README + docs/commands/<name>.md.
+6. Обнови README + `docs/commands/<name>.md`.
 
 ### Тесты
 
@@ -92,15 +92,18 @@ node scripts/build.mjs --no-test --no-bundle
 
 ## Документация
 
-Docs лежат в `docs/` — это **Docsify** сайт (zero-build, CDN-loaded).
+Docs лежат в `docs/` — это **VitePress** сайт (Markdown + конфиг в `docs/.vitepress/config.mjs`).
 
 ```bash
-npm run docs:dev          # локальный dev-server на :3000
-# или
-node scripts/serve-docs.mjs
+npm run docs:dev       # dev-server с HMR (по умолчанию :5173)
+npm run docs:build     # статическая сборка → docs/.vitepress/dist
+npm run docs:preview   # локальный предпросмотр собранного сайта
 ```
 
-Изменил `.md` файл — обнови страницу в браузере, никакой пересборки.
+- Страницы — обычный Markdown в `docs/**.md`. Навигация/сайдбар — в `docs/.vitepress/config.mjs`.
+- Статика (иконки, картинки) — в `docs/public/` (раздаётся из корня сайта, напр. `/_media/icon.svg`).
+- Тема/брендинг — `docs/.vitepress/theme/` (GitFlic-красный). Поиск — встроенный локальный.
+- Важно: в Markdown вне код-блоков не пиши голые `<плейсхолдеры>` — Vue-компилятор примет их за теги. Оборачивай в backticks: `` `<name>` ``.
 
 ## Сборка и релиз
 
@@ -112,18 +115,19 @@ npm run build -- --no-test  # быстрая итерация (без тесто
 npm run build -- --no-bundle # только проверки, без tar.gz
 ```
 
-`scripts/release.mjs` — бампит версию в `package.json`, пересобирает, копирует tar.gz в **`docs/releases/`** (это та же папка, которую хостит Timeweb Apps — артефакты качаются прямо с сайта, без S3), и пересобирает `docs/releases/index.html` со списком релизов.
+`scripts/release.mjs` — бампит версию в `package.json`, пересобирает, копирует tar.gz в **`docs/public/downloads/`** (раздаётся VitePress как `/downloads/<file>` — артефакты качаются прямо с сайта, без S3), и пересобирает там же `index.html` со списком релизов.
 
 ```bash
-npm run release -- --version 0.2.0   # бамп + билд + ship
+npm run release -- --version 0.3.0   # бамп + билд + ship
 npm run release                      # интерактивно спросит версию
+npm run docs:build                   # собрать VitePress перед деплоем
 ```
 
 Почему так: на публичном `gitflic.ru` нет shared runners (нужна Company + self-hosted `runner.jar` — это платный VPS), и покупать S3 ради одного tar.gz тоже не хочется. Поэтому:
 
 1. CI/CD выпилен (`gitflic-ci.yaml` удалён).
-2. Документация хостится на **Timeweb Apps** (статический preset, `index_dir=/`).
-3. Артефакты сборки лежат в той же статике — под тем же доменом, что и документы.
+2. Документация — статический **VitePress** сайт (`npm run docs:build` → `docs/.vitepress/dist`), хостится на **Timeweb Apps** (через GitHub-зеркало).
+3. Артефакты релизов лежат в `docs/public/downloads/` → попадают в ту же статику под тем же доменом (`/downloads/`).
 
 Workflow релиза целиком:
 
@@ -131,14 +135,17 @@ Workflow релиза целиком:
 # 1. Поправил код, прогнал тесты
 npm run build
 
-# 2. Бамп + ship в docs/releases/
-npm run release -- --version 0.2.0
+# 2. Бамп + ship в docs/public/downloads/
+npm run release -- --version 0.3.0
 
-# 3. Коммит
-git add . && git commit -m "release: v0.2.0"
+# 3. Собрать статику дoки
+npm run docs:build
 
-# 4. Пуш (Timeweb Apps задеплоит docs/ автоматически)
-git push origin main
+# 4. Коммит
+git add . && git commit -m "release: v0.3.0"
+
+# 5. Пуш (GitHub-зеркало → Timeweb задеплоит собранную статику)
+git push
 ```
 
 ## Отладка

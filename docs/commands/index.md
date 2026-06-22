@@ -1,30 +1,32 @@
 # Команды
 
-Полный справочник по всем 21 модулю CLI. Каждый модуль — отдельная страница с примерами и флагами.
+Полный справочник по всем модулям CLI. Покрытие GitFlic REST API — ~100%. Каждый модуль — отдельная страница с примерами и флагами.
 
 ## Содержание
 
-- **[`auth`](auth/README.md)** — login, logout, status, multi-account, per-project bindings.
-- **[`mr`](mr.md)** — merge requests (list, view, diff, create, approve, merge, close, comments, discussions).
-- **[`branch`](branch-tag.md#branch)** / **[`tag`](branch-tag.md#tag)** — управление ветками и тегами + protection rules.
-- **[`release`](release.md)** — релизы + multipart upload ассетов.
-- **[`issue`](issue.md)** — задачи + комментарии + relations + attachment upload.
-- **[`commit`](commit-blob.md#commit)** — коммиты, diff, cherry-pick.
-- **[`blob`](commit-blob.md#blob)** — файлы и архивы репозитория.
-- **[`project`](project.md)** — CRUD проектов, members, teams, fork, mirror, import, deploy tokens.
-- **[`user`](user-team.md#user)** — поиск юзеров, profile info, followers.
-- **[`team`](user-team.md#team)** — команды GitFlic.
-- **[`company`](user-team.md#company)** — компании.
-- **[`environment`](cicd-webhook.md#environment)** — environment protection.
-- **[`webhook`](cicd-webhook.md#webhook)** — вебхуки проекта.
-- **[`registry`](registry.md)** — реестр пакетов (instance/company/project scopes).
+- **[`auth`](/auth/)** — login, logout, status, switch, multi-account, per-project bindings.
+- **[`mr`](mr.md)** — merge requests (list, view, diff, create, approve, merge, close, cancel, comments, discussions, settings).
+- **[`branch`](branch-tag.md#branch)** — ветки: list, get, create, delete + protection rules.
+- **[`tag`](branch-tag.md#tag)** — теги: list, get, create, delete.
+- **[`release`](release.md)** — релизы (CRUD) + upload ассетов.
+- **[`issue`](issue.md)** — задачи: list, view, create, edit, close, reopen, comment + relations + attachment upload.
+- **[`commit`](commit-blob.md#commit)** — коммиты: list, get, show (diff).
+- **[`blob`](commit-blob.md#blob)** — файлы и blob'ы репозитория (get, raw).
+- **[`project`](project.md)** — CRUD проектов, members, teams, archive, files, followers, stars, fork, mirror, import, deploy tokens.
+- **[`user`](user-team.md#user)** — me, search, by-id.
+- **[`settings`](settings.md)** — настройки аккаунта: ssh, oauth, access-token, transport-token, change-email, username, password.
+- **[`team`](user-team.md#team)** — команды: list, get, create, edit, delete, members.
+- **[`company`](user-team.md#company)** — компании: list, get.
+- **[`environment`](cicd-webhook.md#environment)** — environments: list, get, create, edit, delete.
+- **[`webhook`](cicd-webhook.md#webhook)** — вебхуки проекта: list, get, create, edit, delete.
+- **[`registry`](registry.md)** — реестр пакетов (scopes: project/company/instance): `registry package` (list/get/versions/files/upload/download/delete) + `registry repo` (registry-repository, Enterprise/Atlas-only).
 - **[`cicd`](cicd-webhook.md#cicd)** — пайплайны и джобы.
-- **[`runner`](cicd-webhook.md#runner)** — CI/CD runners.
-- **[`admin`](commands/admin.md)** — admin endpoints (только для админов).
-- **[`saml`](commands/saml.md)** — SAML SSO (admin only).
-- **[`cache`](commands/cache.md)** — локальный кеш project UUID.
-- **[`completion`](commands/completion.md)** — shell completion (bash/zsh/fish).
-- **[`alias`](commands/alias.md)** — persistent user config.
+- **[`runner`](cicd-webhook.md#runner)** — CI/CD runners / агенты.
+- **[`admin`](./admin.md)** — admin-эндпоинты (только для инстанс-админов).
+- **[`saml`](./saml.md)** — SAML SSO (только для инстанс-админов).
+- **[`cache`](./cache.md)** — локальный кеш project UUID.
+- **[`completion`](./completion.md)** — shell completion (bash/zsh/fish).
+- **[`alias`](./alias.md)** — persistent user config (default-project, api-base и т.д.).
 
 ## Глобальные флаги
 
@@ -105,7 +107,7 @@ CLI хранит persistent state в:
 - **Linux** → GNOME Keyring / KWallet (зашифровано)
 - **иначе** → `~/.config/gitflic-cli/config.json` (`chmod 0600`)
 
-Управляется через [alias](../commands/alias.md) (config-ключи) и [auth](../auth/README.md) (токены + привязки).
+Управляется через [alias](../commands/alias.md) (config-ключи) и [auth](/auth/) (токены + привязки).
 
 ## Отладка
 

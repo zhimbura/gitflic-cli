@@ -1,0 +1,27 @@
+/* GitFlic brand palette for VitePress. Primary = GitFlic red (#e8423a). */
+:root {
+  --vp-c-brand-1: #d4352e;
+  --vp-c-brand-2: #e8423a;
+  --vp-c-brand-3: #e8423a;
+  --vp-c-brand-soft: rgba(232, 66, 58, 0.14);
+
+  --vp-home-hero-name-color: #e8423a;
+  --vp-home-hero-image-background-image: linear-gradient(
+    -45deg,
+    rgba(232, 66, 58, 0.35),
+    rgba(232, 66, 58, 0.08)
+  );
+  --vp-home-hero-image-filter: blur(44px);
+}
+
+.dark {
+  --vp-c-brand-1: #f26b63;
+  --vp-c-brand-2: #e8423a;
+  --vp-c-brand-3: #e8423a;
+  --vp-c-brand-soft: rgba(232, 66, 58, 0.18);
+}
+
+/* Inline command names rendered as subtle red chips (like the old Docsify site). */
+.vp-doc :not(pre) > code {
+  color: var(--vp-c-brand-1);
+}

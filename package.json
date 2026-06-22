@@ -1,7 +1,7 @@
 {
   "name": "gitflic-cli",
-  "version": "0.1.0",
-  "description": "Lightweight CLI for GitFlic REST API (gitflic.ru) — focus on merge requests, discussions and reviews. Zero external dependencies.",
+  "version": "0.3.0",
+  "description": "Lightweight zero-dependency CLI for the full GitFlic REST API (gitflic.ru) — 100% endpoint coverage.",
   "type": "module",
   "private": true,
   "bin": {
@@ -14,13 +14,16 @@
     "start": "node lib/gitflic.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
-    "docs:dev": "node scripts/serve-docs.mjs",
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
+    "docs:preview": "vitepress preview docs",
     "build": "node scripts/build.mjs",
     "release": "node scripts/release.mjs",
     "lint": "node scripts/build.mjs --no-test --no-bundle"
   },
   "license": "MIT",
   "devDependencies": {
+    "vitepress": "^1.6.4",
     "vitest": "^4.1.9"
   }
 }

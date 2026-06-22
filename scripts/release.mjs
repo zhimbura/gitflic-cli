@@ -1,13 +1,13 @@
 #!/usr/bin/env node
-// scripts/release.mjs — version bump + ship to docs/releases/.
+// scripts/release.mjs — version bump + ship to docs/public/downloads/.
 //
 // We don't have S3. We don't want to. After `build.mjs` produces
 // dist/gitflic-cli-X.Y.Z.tar.gz, this script:
 //   1. Prompts for the new version (or reads --version X.Y.Z)
 //   2. Updates package.json#version
 //   3. Re-runs build.mjs
-//   4. Copies the tarball into docs/releases/
-//   5. Rewrites docs/releases/index.html so users can browse + download
+//   4. Copies the tarball into docs/public/downloads/
+//   5. Rewrites docs/public/downloads/index.html so users can browse + download
 //      straight from the Timeweb Apps site
 //
 // Usage:
@@ -32,7 +32,10 @@ import { dirname, join, resolve } from "node:path";
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 const ROOT = resolve(__dirname, "..");
 const DIST = resolve(ROOT, "dist");
-const RELEASES_DIR = resolve(ROOT, "docs", "releases");
+// Release tarballs are served as static VitePress assets from docs/public/,
+// so they land at /downloads/<file> on the built site. (The human-facing
+// page lives at docs/releases/index.md → /releases/.)
+const RELEASES_DIR = resolve(ROOT, "docs", "public", "downloads");
 
 const C = {
   red: (s) => `\x1b[31m${s}\x1b[0m`,
@@ -194,19 +197,19 @@ const build = spawnSync("node", [join(ROOT, "scripts", "build.mjs")], {
 if (build.status !== 0) fail(`build.mjs exited ${build.status}`);
 ok("build complete");
 
-// ---- Ship artifact to docs/releases/ ----
+// ---- Ship artifact to docs/public/downloads/ ----
 mkdirSync(RELEASES_DIR, { recursive: true });
 const tarball = join(DIST, `gitflic-cli-${finalVersion}.tar.gz`);
 if (!existsSync(tarball)) fail(`expected tarball at ${tarball}`);
 copyFileSync(tarball, join(RELEASES_DIR, `gitflic-cli-${finalVersion}.tar.gz`));
-ok(`copied to docs/releases/gitflic-cli-${finalVersion}.tar.gz`);
+ok(`copied to docs/public/downloads/gitflic-cli-${finalVersion}.tar.gz`);
 
 // ---- Render index.html ----
 const versions = listExistingReleases();
 writeFileSync(join(RELEASES_DIR, "index.html"), renderReleasesPage(versions));
-ok(`rendered docs/releases/index.html (${versions.length} release${versions.length === 1 ? "" : "s"})`);
+ok(`rendered docs/public/downloads/index.html (${versions.length} release${versions.length === 1 ? "" : "s"})`);
 
 // ---- Don't clean dist/ — useful for the dev to inspect ----
 console.log(`\n${C.green(C.bold("Release ready."))}`);
 console.log(`  Commit when ready: ${C.cyan("git add . && git commit -m 'release: v" + finalVersion + "'")}`);
-console.log(`  Then push: docs/releases/ will deploy automatically via Timeweb Apps.`);
+console.log(`  Then run \`npm run docs:build\` and push — Timeweb serves docs/.vitepress/dist.`);
