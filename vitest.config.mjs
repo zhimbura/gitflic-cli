@@ -8,5 +8,8 @@ export default defineConfig({
     environment: "node",
     // Reasonable timeout for tests that mock retries.
     testTimeout: 10000,
+    // We have tests under mcp-server/__tests__/; include both
+    // naming styles.
+    include: ["lib/**/*.test.mjs", "mcp-server/**/*.test.mjs"],
   },
 });
