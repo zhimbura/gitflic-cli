@@ -1,7 +1,7 @@
 {
   "name": "gitflic-cli",
-  "version": "0.1.0",
-  "description": "Lightweight CLI for GitFlic REST API (gitflic.ru) — focus on merge requests, discussions and reviews. Zero external dependencies.",
+  "version": "0.3.0",
+  "description": "Lightweight zero-dependency CLI for the full GitFlic REST API (gitflic.ru) — 100% endpoint coverage.",
   "type": "module",
   "private": true,
   "bin": {

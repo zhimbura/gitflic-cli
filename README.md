@@ -4,6 +4,8 @@
 
 > **Примечание:** официальный `cli.jar` от GitFlic — это *серверный* инструмент админа (починка LFS/релизов для self-hosted инстанса). Это — недостающий **пользовательский** CLI для повседневной работы с MR/задачами/релизами.
 
+📖 **Документация:** https://cli-gitflic.ru — все команды, флаги, ENV, multi-account, MCP для AI-агентов и changelog.
+
 ## Зачем
 
 - **Ноль зависимостей.** Чистый Node ESM (>=18). Использует глобальный `fetch`. Без `npm install`.
@@ -181,43 +183,46 @@ gitflic user me                                       # current user (with email
 
 ## Покрытие API (vs https://docs.gitflic.ru/latest/api/)
 
-| # | Раздел | Эндпоинтов в доке | Реализовано | Покрытие | Заметки |
-|---|---|---:|---:|---:|---|
-| 1 | **merge-request** (`mr`) | 17 | 17 | **100%** | Весь жизненный цикл MR + обсуждения + by-commit |
-| 2 | **mergeRequestDiscussion** | 6 | 4 | 67% | delete + get-one + create-reply отсутствуют в доке; покрыты list/reply/resolve/delete + create-via-comment |
-| 3 | **branch** | 11 | 11 | **100%** | вкл. branch protection (CRUD) |
-| 4 | **tag** | 11 | 4 | 36% | tag CRUD частично; tag-protection доступен только team/company и реализован (CRUD) |
-| 5 | **release** | 10 | 7 | 70% | загрузка/скачивание файлов (multipart) не реализовано; CRUD метаданных сделан |
-| 6 | **issue** | 11 | 11 | **100%** | вкл. comments + relations (list) |
-| 7 | **commit** | 8 | 8 | **100%** | вкл. cherry-pick |
-| 8 | **blob** | 5 | 3 | 60% | get / files / archive; загрузка бинарей отсутствует в API |
-| 9 | **settings** (user) | 14 | 7 | 50% | ssh list+delete + access-token create отсутствуют в REST; покрыто ssh-add, oauth CRUD, transport-token create, смена профиля |
-| 10 | **user** | 6 | 6 | **100%** | |
-| 11 | **project** | 25 | 22 | 88% | file attach (multipart), выполнение скриптов, размер проекта не отдаются; member/team/follower/stars/deploy-token покрыты |
-| 12 | **team** | 7 | 6 | 86% | базовый CRUD + members |
-| 13 | **company** | 6 | 2 | 33% | только list / get — создание/изменение/удаление компании только через web UI |
-| 14 | **environment** | 6 | 3 | 50% | только environment-protection (CRUD) — универсального CRUD окружений в REST нет |
-| 15 | **webhook** | 5 | 5 | **100%** | вкл. create / update / delete (POST-эндпоинты) |
-| 16 | **package-registry** (registry) | 19 | 1 | 5% | только list (instance); подтипы (Maven/NPM и т.п.) не обёрнуты |
-| 17 | **cicd** | 15 | 5 | 33% | pipeline list/get/start + jobs list; artifacts / job-* не обёрнуты |
-| 18 | **runner** | 4 | 0 | 0% | заглушка code-only — публичный list не подтверждён |
-| 19 | **admin** | 10 | 2 | 20% | только user list / project list; большинство admin-операций только в web UI |
-| 20 | **saml** | 3 | 1 | 33% | только list |
+**Покрыты все 20 разделов публичного REST API GitFlic** (≈199 эндпоинтов, со всеми scope-вариантами — project / company / team / instance — заметно больше). Большинство протестировано вживую (см. ниже); часть — code-only там, где нужны admin-права или Enterprise/Atlas-функционал.
 
-| | **ИТОГО** | **~199** | **~113** | **~57%** | от задокументированных публичных REST-эндпоинтов |
+| # | Раздел | Покрытие | Заметки |
+|---|---|---:|---|
+| 1 | **merge-request** (`mr`) | **100%** | жизненный цикл + обсуждения + by-commit + approval rules/configuration + squash/method/template (team/company) + apply-settings |
+| 2 | **mergeRequestDiscussion** | **100%** | list / get-one / create / reply / resolve / delete |
+| 3 | **branch** | **100%** | ветки + compare + compare-file + commits-between + branch-protection (project/team/company CRUD + apply) |
+| 4 | **tag** | **100%** | tag list/get/create + tag-protection (team/company list/get/create/edit/delete/apply). *Удаления тега в REST нет.* |
+| 5 | **release** | **100%** | CRUD + загрузка/скачивание/удаление файлов релиза (multipart) |
+| 6 | **issue** | **100%** | CRUD + comments + relations (CRUD) + files (list/link/unlink) + `issue attach` (upload+link) |
+| 7 | **commit** | **100%** | list (`/commits`) + get/file/diff/for-file + commit-diff + tag-diff + cherry-pick |
+| 8 | **blob** | **100%** | get (raw) + download + recursive + file-size |
+| 9 | **settings** (user) | **100%** | ssh add + oauth CRUD + access-token create + transport-token create + смена email/username/password |
+| 10 | **user** | **100%** | me / get / projects / followers / following |
+| 11 | **project** | **100%** | CRUD + search/my/shared + members/teams + fork/mirror/import + archive + files/attachments + change-setting + deploy-token + run-script |
+| 12 | **team** | **100%** | list/my/shared/get/create/transfer + members + import. *edit/delete — UI-only (нет REST).* |
+| 13 | **company** | **100%** | list/my/shared/get/create + members + import |
+| 14 | **environment** | **100%** | environment-protection (team/company list/get/create/edit/delete/apply) |
+| 15 | **webhook** | **100%** | list/get/create/edit/delete |
+| 16 | **package-registry** (`registry package`) | **100%** | list/get/versions/version/files/delete (3 scope) + upload/download для всех форматов (generic/maven/npm/pypi/nuget/composer/opm/cran/rubygem/cargo/conda) |
+| 16b | **registry-repository** (`registry repo`) | **100%** ¹ | CRUD + packages + per-format up/down. *Enterprise/Atlas-only — code-only.* |
+| 17 | **cicd** | **100%** | pipeline list/start/artifacts/restart/cancel/delete + job get/artifacts/lock/unlock/download/restart/cancel + variables + pipeline-lifetime |
+| 18 | **runner** | **100%** | project/company/instance: list/get/jobs/edit/shutdown/delete/registration-info/reset-token ² |
+| 19 | **admin** | **100%** ² | user CRUD + ban/unban + ssh-key + push-stats + 18 settings-мутаторов + ldap import |
+| 20 | **saml** | **100%** ² | `/admin/saml` list/create/edit/change-status |
 
-> Оставшиеся ~43% — в основном:
-> - **Multipart-загрузка файлов** (ассеты релизов, вложения задач) — вне скоупа CLI, но возможны в будущей v2.
-> - **Под-API по типу реестра пакетов** (Maven, NPM, Docker и т.п.) — большая поверхность, низкая ценность для MR-работы.
-> - **Webhook/UI-only сценарии** (SAML admin, регистрация runner'ов, статистика размера проекта) — публичного REST-эндпоинта нет.
-> - **Per-MR настройки проекта** (правила аппрувов, merge-шаблоны) — вне MR-скоупа, но могут появиться через `gitflic project settings mr` в будущей версии.
+> ¹ registry-repository доступен только в Enterprise/Atlas — на публичном `api.gitflic.ru` отдаёт 404. Реализовано строго по спеке (code-only).
+> ² admin / saml / instance-scoped runner требуют прав администратора — реализованы по спеке, но не тестировались живым пользовательским токеном.
 
 ## Известные проблемы / особенности
 
 - **`gitflic tag get <name>`** возвращает HTTP 400 от GitFlic для *любого* имени при project-scoped вызове. Используем `tag list` + поиск. Зафиксировано, обхода с клиента нет.
 - **`mr merge`** на новом проекте может упасть с `MergeCheckException`, потому что дефолтная branch-protection требует аппрув от пользователя, не являющегося автором. Это поведение GitFlic, не баг CLI.
-- **SSH push** в GitFlic требует SSH-ключ (transport-token — для реестра пакетов, а не для `git push`). Ключ можно добавить через web UI или через этот CLI, если публичный ключ уже добавлен вручную.
-- **Создание access-token** через REST требует HTTP Basic auth; CLI это не поддерживает. Создавайте токены через web UI GitFlic.
+- **`project archive`** (`GET .../file/getArchive`) отдаёт HTTP 404 на публичном `api.gitflic.ru` (скачивание архива отключено/доступно только через web). Команда реализована по спеке; используйте `git clone` для получения кода.
+- **`registry repo …`** (репозитории реестра) доступны только в Enterprise/Atlas — на публичном инстансе 404. Реализовано по спеке (code-only).
+- **Файлы релиза**: GitFlic валидирует тип загружаемого файла (allowlist). `.zip`/архивы проходят, `.txt`/`.png` могут вернуть HTTP 415 — это ограничение сервера, не CLI.
+- **`team edit` / `team delete`** в публичном REST отсутствуют (PUT/DELETE `/team/{alias}` → 405) — редактирование/удаление команды только через web UI. Используйте `team transfer` для смены владельца.
+- **SSH push** в GitFlic требует SSH-ключ (transport-token — для реестра пакетов, а не для `git push`). HTTPS-push работает с токеном: `git push https://oauth2:<TOKEN>@gitflic.ru/project/<owner>/<alias>.git`.
+- **Создание access-token** через REST (`settings access-token create`) может требовать HTTP Basic auth — если эндпоинт вернёт 401/403, создайте токен через web UI GitFlic.
+- **admin / saml / instance-scoped runner** требуют прав администратора инстанса — обычный токен получит 403/404. Команды реализованы по спеке.
 - **Многоязычные ответы** GitFlic локализованы (русские заголовки вроде «Открыт», «Слит»). CLI печатает их as-is; значения `status.id` — английские константы (`OPENED`, `MERGED`, `CLOSED`, `CANCELED`, `FAILED`).
 
 ## Для AI-агентов
