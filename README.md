@@ -45,21 +45,55 @@ export PATH="$HOME/.local/bin:$PATH"   # добавь в ~/.bashrc / ~/.zshrc
 
 ## Аутентификация
 
-1. Откройте <https://gitflic.ru> → **Профиль** → **API-токены** → **Создать**.
-2. Выберите скоупы — как минимум `PROJECT_READ` и `PROJECT_WRITE` / `PROJECT_EDIT` для работы с MR.
-3. Экспортируйте токен:
+**Рекомендуемый путь — `gitflic auth login`.** Токен валидируется через `/user/me` ДО сохранения, чтобы опечатка не отравила keychain, и кладётся в системное хранилище секретов:
+
+```bash
+gitflic auth login --token xxxx-xxxx-xxxx            # интерактивно: вставить токен
+gitflic auth status                                  # проверить: backend + identity
+```
+
+Хранилище выбирается автоматически (как в `gh`/`glab`):
+- **macOS** → Keychain (`security add-generic-password`).
+- **Linux** → libsecret через `secret-tool` (если установлен).
+- **иначе** → файл `~/.config/gitflic-cli/config.json` с `chmod 0600` + предупреждение в stderr.
+
+Просмотр и очистка:
+
+```bash
+gitflic auth list              # все аккаунты, токены замаскированы
+gitflic auth logout            # удалить активный токен
+gitflic auth logout --all      # удалить ВСЕ токены (включая named accounts)
+```
+
+### Несколько аккаунтов (multi-account)
+
+`--as <name>` сохраняет токен под `token:<name>` и делает его активным:
+
+```bash
+gitflic auth login --as work    --token xxxx    # → token:work, active-account=work
+gitflic auth login --as personal --token yyyy   # → token:personal
+gitflic auth switch work                        # переключиться на work
+gitflic auth status                             # identity от work
+```
+
+`auth list` помечает активный аккаунт звёздочкой.
+
+### Альтернативы (env var / .env)
+
+Если не хотите хранить токен в CLI — через окружение:
 
 ```bash
 export GITFLIC_TOKEN="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+gitflic mr list
 ```
 
-Для self-hosted GitFlic также задайте:
+Порядок резолва токена в `gitflic`: `--token <flag>` → `GITFLIC_TOKEN` → secret store (с учётом `active-account`) → die.
 
-```bash
-export GITFLIC_API_BASE="https://git.example.com"
-```
+Для self-hosted GitFlic задайте `GITFLIC_API_BASE` (env или `gitflic alias set api-base https://git.example.com`).
 
-Можно также положить `.env` рядом с проектом (режим `0600`) — он подхватится автоматически, если вы оборачиваете бинарник, например:
+### `.env` файл
+
+CLI сам не подхватывает `.env` — нужно `source` его в shell, либо использовать `direnv`/подобное. Пример:
 
 ```bash
 set -a; source .env; set +a; gitflic mr list
