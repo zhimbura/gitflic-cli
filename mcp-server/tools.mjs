@@ -432,6 +432,565 @@ export const TOOLS = [
     },
     handler: (a) => ["branch", "protection", "list", "--project", a.project],
   },
+
+  // ===== MR: edits / cancel / by-commit / discuss delete ==================
+  {
+    name: "gitflic_mr_edit",
+    description: "Edit MR title/description/target. Source branch cannot change.",
+    inputSchema: {
+      type: "object",
+      required: ["project", "id"],
+      properties: {
+        project: { type: "string" }, id: { type: "string" },
+        title: { type: "string" }, description: { type: "string" },
+        to: { type: "string" }, squash: { type: "boolean" },
+        removeBranch: { type: "boolean" },
+      },
+    },
+    handler: (a) => {
+      const args = ["mr", "edit", a.id, "--project", a.project, "--format", "json"];
+      if (a.title) args.push("--title", a.title);
+      if (a.description !== undefined) args.push("--description", a.description);
+      if (a.to) args.push("--to", a.to);
+      if (a.squash) args.push("--squash");
+      if (a.removeBranch === false) args.push("--no-remove-branch");
+      return args;
+    },
+  },
+  {
+    name: "gitflic_mr_cancel",
+    description: "Cancel a merge request.",
+    inputSchema: {
+      type: "object",
+      required: ["project", "id"],
+      properties: { project: { type: "string" }, id: { type: "string" } },
+    },
+    handler: (a) => ["mr", "cancel", a.id, "--project", a.project, "--format", "json"],
+  },
+  {
+    name: "gitflic_mr_by_commit",
+    description: "Find MR(s) containing a specific commit hash. Optionally filter by status.",
+    inputSchema: {
+      type: "object",
+      required: ["project", "hash"],
+      properties: {
+        project: { type: "string" },
+        hash: { type: "string" },
+        status: { type: "string", enum: ["OPENED", "MERGED", "CLOSED", "CANCELED", "FAILED"] },
+      },
+    },
+    handler: (a) => {
+      const args = ["mr", "by-commit", a.hash, "--project", a.project, "--format", "json"];
+      if (a.status) args.push("--status", a.status);
+      return args;
+    },
+  },
+  {
+    name: "gitflic_mr_discuss_delete",
+    description: "Delete a discussion thread on a merge request.",
+    inputSchema: {
+      type: "object",
+      required: ["project", "id", "discussionUuid"],
+      properties: { project: { type: "string" }, id: { type: "string" }, discussionUuid: { type: "string" } },
+    },
+    handler: (a) => ["mr", "discuss", "delete", a.id, a.discussionUuid, "--project", a.project, "--format", "json"],
+  },
+
+  // ===== Issue: edit / reopen / delete / comments / relations ============
+  {
+    name: "gitflic_issue_edit",
+    description: "Edit an issue's title, description, status, assignee, or labels.",
+    inputSchema: {
+      type: "object",
+      required: ["project", "id"],
+      properties: {
+        project: { type: "string" }, id: { type: "string" },
+        title: { type: "string" }, description: { type: "string" },
+        status: { type: "string", enum: ["OPEN", "IN_PROGRESS", "CLOSED", "COMPLETED"] },
+        assignTo: { type: "string", description: "user uuid" },
+        label: { type: "string", description: "label uuid" },
+      },
+    },
+    handler: (a) => {
+      const args = ["issue", "edit", a.id, "--project", a.project, "--format", "json"];
+      if (a.title) args.push("--title", a.title);
+      if (a.description !== undefined) args.push("--description", a.description);
+      if (a.status) args.push("--status", a.status);
+      if (a.assignTo) args.push("--assign-to", a.assignTo);
+      if (a.label) args.push("--label", a.label);
+      return args;
+    },
+  },
+  {
+    name: "gitflic_issue_reopen",
+    description: "Reopen a closed issue.",
+    inputSchema: {
+      type: "object",
+      required: ["project", "id"],
+      properties: { project: { type: "string" }, id: { type: "string" } },
+    },
+    handler: (a) => ["issue", "reopen", a.id, "--project", a.project, "--format", "json"],
+  },
+  {
+    name: "gitflic_issue_delete",
+    description: "Delete an issue. Irreversible.",
+    inputSchema: {
+      type: "object",
+      required: ["project", "id"],
+      properties: { project: { type: "string" }, id: { type: "string" } },
+    },
+    handler: (a) => ["issue", "delete", a.id, "--project", a.project, "--format", "json"],
+  },
+  {
+    name: "gitflic_issue_comments_list",
+    description: "List comments on an issue.",
+    inputSchema: {
+      type: "object",
+      required: ["project", "id"],
+      properties: { project: { type: "string" }, id: { type: "string" } },
+    },
+    handler: (a) => ["issue", "comments", "list", a.id, "--project", a.project, "--format", "json"],
+  },
+  {
+    name: "gitflic_issue_comments_edit",
+    description: "Edit an existing issue comment.",
+    inputSchema: {
+      type: "object",
+      required: ["project", "id", "commentId", "message"],
+      properties: {
+        project: { type: "string" }, id: { type: "string" },
+        commentId: { type: "string" }, message: { type: "string" },
+      },
+    },
+    handler: (a) => ["issue", "comments", "edit", a.id, a.commentId, a.message, "--project", a.project, "--format", "json"],
+  },
+  {
+    name: "gitflic_issue_comments_delete",
+    description: "Delete an issue comment.",
+    inputSchema: {
+      type: "object",
+      required: ["project", "id", "commentId"],
+      properties: { project: { type: "string" }, id: { type: "string" }, commentId: { type: "string" } },
+    },
+    handler: (a) => ["issue", "comments", "delete", a.id, a.commentId, "--project", a.project, "--format", "json"],
+  },
+  {
+    name: "gitflic_issue_relations_list",
+    description: "List issue relations (linked/related/blocks).",
+    inputSchema: {
+      type: "object",
+      required: ["project", "id"],
+      properties: { project: { type: "string" }, id: { type: "string" } },
+    },
+    handler: (a) => ["issue", "relations", "list", a.id, "--project", a.project, "--format", "json"],
+  },
+
+  // ===== Branch: get / default / compare / protection CRUD ==============
+  {
+    name: "gitflic_branch_get",
+    description: "Get a single branch by name.",
+    inputSchema: {
+      type: "object",
+      required: ["project", "name"],
+      properties: { project: { type: "string" }, name: { type: "string" } },
+    },
+    handler: (a) => ["branch", "get", a.name, "--project", a.project, "--format", "json"],
+  },
+  {
+    name: "gitflic_branch_default",
+    description: "Get the project's default branch.",
+    inputSchema: {
+      type: "object",
+      required: ["project"],
+      properties: { project: { type: "string" } },
+    },
+    handler: (a) => ["branch", "default", "--project", a.project, "--format", "json"],
+  },
+  {
+    name: "gitflic_branch_protection_get",
+    description: "Get a branch-protection rule by uuid.",
+    inputSchema: {
+      type: "object",
+      required: ["project", "uuid"],
+      properties: { project: { type: "string" }, uuid: { type: "string" } },
+    },
+    handler: (a) => ["branch", "protection", "get", a.uuid, "--project", a.project, "--format", "json"],
+  },
+  {
+    name: "gitflic_branch_protection_create",
+    description: "Create a branch-protection rule.",
+    inputSchema: {
+      type: "object",
+      required: ["project", "branchTemplate", "allowedToPush", "allowedToMerge"],
+      properties: {
+        project: { type: "string" },
+        branchTemplate: { type: "string", description: "Branch pattern (e.g. master, release/*)" },
+        allowedToPush: { type: "string", enum: ["NO_ONE", "DEVELOPER", "ADMINS"] },
+        allowedToMerge: { type: "string", enum: ["NO_ONE", "DEVELOPER", "ADMINS"] },
+        allowForcePush: { type: "boolean" },
+        codeOwnerApproval: { type: "boolean" },
+        autoMerge: { type: "boolean" },
+      },
+    },
+    handler: (a) => {
+      const args = ["branch", "protection", "create", "--project", a.project,
+        "--branch-template", a.branchTemplate,
+        "--allowed-to-push", a.allowedToPush,
+        "--allowed-to-merge", a.allowedToMerge,
+        "--format", "json"];
+      if (a.allowForcePush) args.push("--allow-force-push");
+      if (a.codeOwnerApproval) args.push("--code-owner-approval");
+      if (a.autoMerge) args.push("--auto-merge");
+      return args;
+    },
+  },
+  {
+    name: "gitflic_branch_protection_edit",
+    description: "Edit a branch-protection rule.",
+    inputSchema: {
+      type: "object",
+      required: ["project", "uuid"],
+      properties: {
+        project: { type: "string" }, uuid: { type: "string" },
+        allowedToPush: { type: "string", enum: ["NO_ONE", "DEVELOPER", "ADMINS"] },
+        allowedToMerge: { type: "string", enum: ["NO_ONE", "DEVELOPER", "ADMINS"] },
+        allowForcePush: { type: "boolean" },
+        codeOwnerApproval: { type: "boolean" },
+        autoMerge: { type: "boolean" },
+      },
+    },
+    handler: (a) => {
+      const args = ["branch", "protection", "edit", a.uuid, "--project", a.project, "--format", "json"];
+      if (a.allowedToPush) args.push("--allowed-to-push", a.allowedToPush);
+      if (a.allowedToMerge) args.push("--allowed-to-merge", a.allowedToMerge);
+      if (a.allowForcePush !== undefined) args.push("--allow-force-push", String(a.allowForcePush));
+      if (a.codeOwnerApproval !== undefined) args.push("--code-owner-approval", String(a.codeOwnerApproval));
+      if (a.autoMerge !== undefined) args.push("--auto-merge", String(a.autoMerge));
+      return args;
+    },
+  },
+  {
+    name: "gitflic_branch_protection_delete",
+    description: "Delete a branch-protection rule.",
+    inputSchema: {
+      type: "object",
+      required: ["project", "uuid"],
+      properties: { project: { type: "string" }, uuid: { type: "string" } },
+    },
+    handler: (a) => ["branch", "protection", "delete", a.uuid, "--project", a.project, "--format", "json"],
+  },
+
+  // ===== Tag: get / protection CRUD ======================================
+  {
+    name: "gitflic_tag_get",
+    description: "Get a tag by name. NOTE: GitFlic returns 400 for project-scoped tag get; prefer tag list.",
+    inputSchema: {
+      type: "object",
+      required: ["project", "name"],
+      properties: { project: { type: "string" }, name: { type: "string" } },
+    },
+    handler: (a) => ["tag", "get", a.name, "--project", a.project, "--format", "json"],
+  },
+
+  // ===== Release: get / latest / edit / delete ============================
+  {
+    name: "gitflic_release_get",
+    description: "Get one release by uuid.",
+    inputSchema: {
+      type: "object",
+      required: ["project", "uuid"],
+      properties: { project: { type: "string" }, uuid: { type: "string" } },
+    },
+    handler: (a) => ["release", "get", a.uuid, "--project", a.project, "--format", "json"],
+  },
+  {
+    name: "gitflic_release_latest",
+    description: "Get the most recent release.",
+    inputSchema: {
+      type: "object",
+      required: ["project"],
+      properties: { project: { type: "string" } },
+    },
+    handler: (a) => ["release", "latest", "--project", a.project, "--format", "json"],
+  },
+  {
+    name: "gitflic_release_edit",
+    description: "Edit release metadata.",
+    inputSchema: {
+      type: "object",
+      required: ["project", "uuid"],
+      properties: {
+        project: { type: "string" }, uuid: { type: "string" },
+        title: { type: "string" }, description: { type: "string" },
+        tag: { type: "string" }, preRelease: { type: "boolean" },
+      },
+    },
+    handler: (a) => {
+      const args = ["release", "edit", a.uuid, "--project", a.project, "--format", "json"];
+      if (a.title) args.push("--title", a.title);
+      if (a.description !== undefined) args.push("--description", a.description);
+      if (a.tag) args.push("--tag", a.tag);
+      if (a.preRelease !== undefined) args.push("--pre-release", String(a.preRelease));
+      return args;
+    },
+  },
+  {
+    name: "gitflic_release_delete",
+    description: "Delete a release.",
+    inputSchema: {
+      type: "object",
+      required: ["project", "uuid"],
+      properties: { project: { type: "string" }, uuid: { type: "string" } },
+    },
+    handler: (a) => ["release", "delete", a.uuid, "--project", a.project, "--format", "json"],
+  },
+
+  // ===== Commit: get / files / compare ===================================
+  {
+    name: "gitflic_commit_get",
+    description: "Get one commit by hash.",
+    inputSchema: {
+      type: "object",
+      required: ["project", "hash"],
+      properties: { project: { type: "string" }, hash: { type: "string" } },
+    },
+    handler: (a) => ["commit", "get", a.hash, "--project", a.project, "--format", "json"],
+  },
+  {
+    name: "gitflic_commit_files",
+    description: "List files touched by a commit.",
+    inputSchema: {
+      type: "object",
+      required: ["project", "hash"],
+      properties: { project: { type: "string" }, hash: { type: "string" } },
+    },
+    handler: (a) => ["commit", "files", a.hash, "--project", a.project, "--format", "json"],
+  },
+  {
+    name: "gitflic_commit_compare",
+    description: "Compare two commits.",
+    inputSchema: {
+      type: "object",
+      required: ["project", "source", "target"],
+      properties: { project: { type: "string" }, source: { type: "string" }, target: { type: "string" } },
+    },
+    handler: (a) => ["commit", "compare", a.source, a.target, "--project", a.project, "--format", "json"],
+  },
+
+  // ===== Webhook: get / create / delete ==================================
+  {
+    name: "gitflic_webhook_get",
+    description: "Get one webhook by uuid.",
+    inputSchema: {
+      type: "object",
+      required: ["project", "uuid"],
+      properties: { project: { type: "string" }, uuid: { type: "string" } },
+    },
+    handler: (a) => ["webhook", "get", a.uuid, "--project", a.project, "--format", "json"],
+  },
+  {
+    name: "gitflic_webhook_create",
+    description: "Create a webhook. Pass one or more event names.",
+    inputSchema: {
+      type: "object",
+      required: ["project", "url"],
+      properties: {
+        project: { type: "string" },
+        url: { type: "string" },
+        event: { type: "string", description: "Event name (e.g. PUSH). Pass array for multiple." },
+        active: { type: "boolean" },
+      },
+    },
+    handler: (a) => {
+      const args = ["webhook", "create", "--url", a.url, "--project", a.project, "--format", "json"];
+      if (a.event) {
+        const evs = Array.isArray(a.event) ? a.event : [a.event];
+        for (const e of evs) args.push("--event", e);
+      }
+      if (a.active !== undefined) args.push("--active", String(a.active));
+      return args;
+    },
+  },
+  {
+    name: "gitflic_webhook_delete",
+    description: "Delete a webhook by uuid.",
+    inputSchema: {
+      type: "object",
+      required: ["project", "uuid"],
+      properties: { project: { type: "string" }, uuid: { type: "string" } },
+    },
+    handler: (a) => ["webhook", "delete", a.uuid, "--project", a.project, "--format", "json"],
+  },
+
+  // ===== Project: get / create / edit / member list =====================
+  {
+    name: "gitflic_project_get",
+    description: "Resolve an owner/alias to its UUID + metadata.",
+    inputSchema: {
+      type: "object",
+      required: ["project"],
+      properties: { project: { type: "string" } },
+    },
+    handler: (a) => ["project", "get", a.project, "--format", "json"],
+  },
+  {
+    name: "gitflic_project_create",
+    description: "Create a new project.",
+    inputSchema: {
+      type: "object",
+      required: ["title", "alias"],
+      properties: {
+        title: { type: "string" },
+        alias: { type: "string" },
+        isPrivate: { type: "boolean" },
+        language: { type: "string" },
+        description: { type: "string" },
+        ownerAlias: { type: "string" },
+        ownerAliasType: { type: "string", enum: ["USER", "TEAM", "COMPANY"] },
+      },
+    },
+    handler: (a) => {
+      const args = ["project", "create", "--title", a.title, "--alias", a.alias, "--format", "json"];
+      if (a.isPrivate) args.push("--private");
+      if (a.language) args.push("--language", a.language);
+      if (a.description) args.push("--description", a.description);
+      if (a.ownerAlias) args.push("--owner-alias", a.ownerAlias);
+      if (a.ownerAliasType) args.push("--owner-alias-type", a.ownerAliasType);
+      return args;
+    },
+  },
+  {
+    name: "gitflic_project_edit",
+    description: "Edit project metadata (title, description, default branch, visibility).",
+    inputSchema: {
+      type: "object",
+      required: ["project"],
+      properties: {
+        project: { type: "string" },
+        title: { type: "string" },
+        description: { type: "string" },
+        isPrivate: { type: "boolean" },
+        language: { type: "string" },
+        defaultBranch: { type: "string" },
+      },
+    },
+    handler: (a) => {
+      const args = ["project", "edit", a.project, "--format", "json"];
+      if (a.title) args.push("--title", a.title);
+      if (a.description !== undefined) args.push("--description", a.description);
+      if (a.isPrivate !== undefined) args.push(a.isPrivate ? "--private" : "--public");
+      if (a.language) args.push("--language", a.language);
+      if (a.defaultBranch) args.push("--default-branch", a.defaultBranch);
+      return args;
+    },
+  },
+  {
+    name: "gitflic_project_member_list",
+    description: "List project members.",
+    inputSchema: {
+      type: "object",
+      required: ["project"],
+      properties: { project: { type: "string" } },
+    },
+    handler: (a) => ["project", "member", "list", "--project", a.project, "--format", "json"],
+  },
+  {
+    name: "gitflic_project_member_invite",
+    description: "Invite a user to a project with a role.",
+    inputSchema: {
+      type: "object",
+      required: ["project", "userAlias", "role"],
+      properties: {
+        project: { type: "string" },
+        userAlias: { type: "string" },
+        role: { type: "string", enum: ["GUEST", "REPORTER", "DEVELOPER", "MAINTAINER", "OWNER"] },
+      },
+    },
+    handler: (a) => ["project", "member", "invite", a.userAlias, "--role", a.role, "--project", a.project, "--format", "json"],
+  },
+
+  // ===== Blob / file: get / files / archive =============================
+  {
+    name: "gitflic_blob_get",
+    description: "Get a file's text content. Binary files are base64-encoded by the server.",
+    inputSchema: {
+      type: "object",
+      required: ["project", "path"],
+      properties: {
+        project: { type: "string" },
+        path: { type: "string", description: "File path inside the repo, e.g. 'README.md'" },
+        branch: { type: "string" },
+        commit: { type: "string" },
+      },
+    },
+    handler: (a) => {
+      const args = ["blob", "get", a.path, "--project", a.project, "--format", "json"];
+      if (a.branch) args.push("--branch", a.branch);
+      if (a.commit) args.push("--commit", a.commit);
+      return args;
+    },
+  },
+  {
+    name: "gitflic_blob_files",
+    description: "List files in the repo (optionally under a sub-path).",
+    inputSchema: {
+      type: "object",
+      required: ["project"],
+      properties: {
+        project: { type: "string" },
+        path: { type: "string", description: "Sub-path, e.g. 'lib/cmd'" },
+        branch: { type: "string" },
+      },
+    },
+    handler: (a) => {
+      const args = ["blob", "files", "--project", a.project, "--format", "json"];
+      if (a.path) args.push("--path", a.path);
+      if (a.branch) args.push("--branch", a.branch);
+      return args;
+    },
+  },
+  {
+    name: "gitflic_blob_archive",
+    description: "Download a repo archive (tarball). Returns JSON metadata; use shell to stream the body.",
+    inputSchema: {
+      type: "object",
+      required: ["project", "branch"],
+      properties: { project: { type: "string" }, branch: { type: "string" } },
+    },
+    handler: (a) => ["blob", "archive", a.branch, "--project", a.project, "--format", "json"],
+  },
+
+  // ===== User: get / projects / followers =================================
+  {
+    name: "gitflic_user_get",
+    description: "Get a user by alias.",
+    inputSchema: {
+      type: "object",
+      required: ["alias"],
+      properties: { alias: { type: "string" } },
+    },
+    handler: (a) => ["user", "get", a.alias, "--format", "json"],
+  },
+  {
+    name: "gitflic_user_projects",
+    description: "List public projects of a user.",
+    inputSchema: {
+      type: "object",
+      required: ["alias"],
+      properties: { alias: { type: "string" } },
+    },
+    handler: (a) => ["user", "projects", a.alias, "--format", "json"],
+  },
+  {
+    name: "gitflic_user_followers",
+    description: "List a user's followers.",
+    inputSchema: {
+      type: "object",
+      required: ["alias"],
+      properties: { alias: { type: "string" } },
+    },
+    handler: (a) => ["user", "followers", a.alias, "--format", "json"],
+  },
 ];
 
 // Build the JSON Schema for ListTools request, just to help debugging.
