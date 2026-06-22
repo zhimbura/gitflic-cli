@@ -1,36 +1,36 @@
-# gitflic-cli MCP server
+# gitflic-cli MCP-сервер
 
-A [Model Context Protocol](https://modelcontextprotocol.io/) server that wraps the `gitflic` CLI and exposes ~30 GitFlic REST endpoints as **typed tools** for AI agents (Claude Code, Cursor, etc.).
+[Model Context Protocol](https://modelcontextprotocol.io/) сервер, оборачивающий CLI `gitflic` и отдающий ~30 эндпоинтов GitFlic REST как **типизированные тулзы** для AI-агентов (Claude Code, Cursor и т.п.).
 
-## What's inside
+## Что внутри
 
-- `server.mjs` — MCP stdio server, registers every tool, dispatches to the CLI.
-- `tools.mjs` — Tool definitions (name, description, JSON schema, CLI arg builder).
-- `runner.mjs` — `child_process` wrapper that spawns `../bin/gitflic` and parses JSON.
-- `package.json` — `@modelcontextprotocol/sdk` only.
+- `server.mjs` — MCP-сервер на stdio, регистрирует все тулзы, диспетчеризует в CLI.
+- `tools.mjs` — описания тулзов (имя, описание, JSON-схема, билдер аргументов CLI).
+- `runner.mjs` — обёртка над `child_process`, спавнит `../bin/gitflic` и парсит JSON.
+- `package.json` — единственная зависимость `@modelcontextprotocol/sdk`.
 
-The MCP server is a **thin layer** — every tool maps 1-to-1 to a CLI sub-command. Anything you can do with `gitflic …` you can do from an MCP host.
+MCP-сервер — это **тонкая прослойка**: каждая тулза маппится 1-в-1 на подкоманду CLI. Всё, что можно сделать через `gitflic …`, доступно и из MCP-хоста.
 
-## Install
+## Установка
 
 ```bash
 cd mcp-server
 npm install
 ```
 
-Requires Node 18+ and a built `gitflic` binary at `../bin/gitflic` (the parent project builds it on first run — no build step needed, it's plain ESM).
+Требуется Node 18+ и собранный бинарник `gitflic` по пути `../bin/gitflic` (родительский проект собирает его при первом запуске — отдельный шаг сборки не нужен, это чистый ESM).
 
-## Configure token
+## Настройка токена
 
-The server reads `GITFLIC_TOKEN` from the parent process environment, exactly like the CLI:
+Сервер читает `GITFLIC_TOKEN` из окружения родительского процесса — ровно так же, как CLI:
 
 ```bash
 export GITFLIC_TOKEN="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
 ```
 
-For self-hosted GitFlic, also `export GITFLIC_API_BASE=https://git.example.com`.
+Для self-hosted GitFlic дополнительно: `export GITFLIC_API_BASE=https://git.example.com`.
 
-## Register with your MCP host
+## Регистрация в MCP-хосте
 
 ### Claude Code (`~/.claude/mcp_servers.json`)
 
@@ -48,18 +48,18 @@ For self-hosted GitFlic, also `export GITFLIC_API_BASE=https://git.example.com`.
 
 ### Cursor (`~/.cursor/mcp.json`)
 
-Same shape. Restart the host.
+Та же структура. Перезапустите хост.
 
-## Tools exposed (30)
+## Тулзы (30)
 
-| Tool | Maps to |
+| Тулз | Маппится на |
 |---|---|
 | `gitflic_auth` | `gitflic auth` |
 | `gitflic_project_resolve` | `gitflic project get` |
 | `gitflic_mr_list` / `view` / `diff` | `gitflic mr list/view/diff` |
-| `gitflic_mr_create` | `gitflic mr create` (auto from→to) |
+| `gitflic_mr_create` | `gitflic mr create` (авто from→to) |
 | `gitflic_mr_approve` / `merge` / `close` | `gitflic mr approve/merge/close` |
-| `gitflic_mr_comment` (general + inline-anchored) | `gitflic mr comment` |
+| `gitflic_mr_comment` (общий + инлайн-якорный) | `gitflic mr comment` |
 | `gitflic_mr_discuss_list` / `reply` / `resolve` | `gitflic mr discuss …` |
 | `gitflic_issue_list` / `view` / `create` / `close` / `comment` | `gitflic issue …` |
 | `gitflic_branch_list` / `create` / `delete` | `gitflic branch …` |
@@ -71,30 +71,30 @@ Same shape. Restart the host.
 | `gitflic_webhook_list` | `gitflic webhook list` |
 | `gitflic_branch_protection_list` | `gitflic branch protection list` |
 
-Anything not exposed here is still available via `gitflic …` directly — agents can shell out if they need a less-common endpoint.
+Что не выставлено здесь — всё равно доступно через `gitflic …` напрямую: агенты могут дёргать шелл, если нужен менее ходовой эндпоинт.
 
-## How it works
+## Как это работает
 
 ```
 [Claude Code / Cursor]
-        │   JSON-RPC over stdio
+        │   JSON-RPC по stdio
         ▼
   mcp-server/server.mjs
-        │   zod-validated tool call
+        │   тулз-вызов после zod-валидации
         ▼
   mcp-server/runner.mjs   ── spawn ──►  ../bin/gitflic mr create --title "…" --format json
         │
         ▼
-  parsed JSON response
+  распарсенный JSON-ответ
 ```
 
-Every tool's handler returns `["gitflic", "subcommand", "--flag", "value", …, "--format", "json"]`. The runner enforces that `--format json` is appended, then parses and returns structured data.
+Каждый хендлер тулза возвращает `["gitflic", "subcommand", "--flag", "value", …, "--format", "json"]`. Runner форсит добавление `--format json` в конец, парсит и возвращает структурированные данные.
 
-On non-zero exit (e.g. HTTP 422, 403, 404), the tool returns `isError: true` with the gitflic error message as text content — agents see the failure and can recover.
+При ненулевом коде выхода (HTTP 422, 403, 404) тулз возвращает `isError: true` с текстом ошибки от gitflic — агент видит сбой и может восстановиться.
 
-## Extend
+## Расширение
 
-Add a tool by appending to `TOOLS` in `tools.mjs`:
+Добавьте тулз, дописав в `TOOLS` в `tools.mjs`:
 
 ```js
 {
@@ -109,8 +109,8 @@ Add a tool by appending to `TOOLS` in `tools.mjs`:
 }
 ```
 
-No registration code — the loop in `server.mjs` picks it up automatically.
+Отдельного кода регистрации нет — цикл в `server.mjs` подхватит тулз автоматически.
 
-## License
+## Лицензия
 
-MIT (same as parent project).
+MIT (как у родительского проекта).
