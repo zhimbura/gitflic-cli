@@ -18,6 +18,7 @@ import { z } from "zod";
 
 import { runGitflic, runGitflicJson, GitflicError } from "./runner.mjs";
 import { TOOLS } from "./tools.mjs";
+import { resolveProjectArg } from "./project-resolver.mjs";
 
 const server = new McpServer(
   {
@@ -71,7 +72,9 @@ for (const tool of TOOLS) {
     zodInput.shape,
     async (args) => {
       try {
-        const cliArgs = tool.handler(args || {});
+        // Auto-resolve `project` from env or git remote if not provided.
+        const resolvedArgs = resolveProjectArg(args || {});
+        const cliArgs = tool.handler(resolvedArgs);
         // All our handlers return either an array (--format json) or
         // a list ending with --format pretty. We decide based on output
         // content (JSON parse) or just always try JSON first.
