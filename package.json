@@ -1,0 +1,17 @@
+{
+  "name": "gitflic-cli",
+  "version": "0.1.0",
+  "description": "Lightweight CLI for GitFlic REST API (gitflic.ru) — focus on merge requests, discussions and reviews. Zero external dependencies.",
+  "type": "module",
+  "private": true,
+  "bin": {
+    "gitflic": "bin/gitflic"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "start": "node lib/gitflic.mjs"
+  },
+  "license": "MIT"
+}

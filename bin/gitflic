@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# gitflic — entry point. Forwards everything to the Node ESM entrypoint.
+# Keeps a single source of truth and lets you run from anywhere (symlinks, PATH).
+set -euo pipefail
+
+# Resolve the real path of this script even if invoked via a symlink.
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do
+  DIR="$(cd -P "$(dirname "$SOURCE")" >/dev/null 2>&1 && pwd)"
+  SOURCE="$(readlink "$SOURCE")"
+  [[ "$SOURCE" != /* ]] && SOURCE="$DIR/$SOURCE"
+done
+ROOT="$(cd -P "$(dirname "$SOURCE")/.." >/dev/null 2>&1 && pwd)"
+
+exec node "$ROOT/lib/gitflic.mjs" "$@"
