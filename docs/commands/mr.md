@@ -107,9 +107,71 @@ gitflic mr comment 42 --project FerdBur/wave "Fix this" \
 
 ```bash
 gitflic mr discuss list 42 --project FerdBur/wave
+gitflic mr discuss get 42 <discussionUuid> --project FerdBur/wave        # один тред целиком
 gitflic mr discuss reply 42 <discussionUuid> "My reply" --project FerdBur/wave
 gitflic mr discuss resolve 42 <discussionUuid> --project FerdBur/wave
 gitflic mr discuss delete 42 <discussionUuid> --project FerdBur/wave
+```
+
+## Настройки MR (company / team)
+
+Эти подкоманды управляют политиками MR на уровне **компании или команды** (approval-правила, конфигурация аппрувов, squash, метод merge, шаблон описания). Требуется указать scope:
+
+- напрямую: `--company <alias>` или `--team <alias>`;
+- либо `--scope company|team` вместе с `--project owner/alias` (контекст проекта всё равно должен резолвиться).
+
+### approval rule (правила аппрува)
+
+```bash
+gitflic mr approval rule list --scope team --team backend --format json
+gitflic mr approval rule get <uuid> --scope team --team backend
+
+gitflic mr approval rule create --scope team --team backend \
+  --name "main protection" --target-branch main \
+  --minimal-approvals 2 --approvers tikhon,alice
+
+gitflic mr approval rule edit --uuid <uuid> --scope team --team backend \
+  --minimal-approvals 1
+
+gitflic mr approval rule delete <uuid> --scope team --team backend
+```
+
+### approval configuration (общая конфигурация аппрувов)
+
+```bash
+gitflic mr approval configuration get --company acme --format json
+
+gitflic mr approval configuration edit --company acme \
+  --minimal-approvals 2 \
+  --reset-approvals-on-push true \
+  --require-all-discussions-resolved true \
+  --author-can-approve false
+
+# Полный контроль над телом запроса:
+gitflic mr approval configuration edit --company acme --json '{"minimalApprovals":3}'
+```
+
+### settings (squash / merge-method / template)
+
+```bash
+gitflic mr settings squash --team backend                       # текущее значение
+gitflic mr settings squash-edit --team backend --enabled true
+
+gitflic mr settings method-type --company acme                  # текущий метод merge
+gitflic mr settings method-type-edit --company acme --type SQUASH
+
+gitflic mr settings template --team backend                     # шаблон описания MR
+gitflic mr settings template-edit --team backend \
+  --template "## Что изменилось\n\n## Как проверить"
+```
+
+Все `*-edit` подкоманды дополнительно принимают `--json '<obj>'` для полного контроля над телом запроса.
+
+### apply-settings
+
+```bash
+gitflic mr apply-settings --company acme
+# Применить настройки MR компании/команды ко всем её проектам.
 ```
 
 ## TUI mode
@@ -161,5 +223,4 @@ gitflic mr list --project FerdBur/wave --all --format json \
 ## Известные ограничения
 
 - `mr merge` на свежем проекте может упасть с `MergeCheckException`, если default branch protection требует approve от не-автора. Это поведение GitFlic, не баг CLI.
-- `tag get <name>` ломается для некоторых имён (см. [known-issues.md](../known-issues.md)).
-- Per-MR настройки (approval rules, merge templates) — НЕ покрыты. Используйте `gitflic project settings mr` (если добавим — отдельная фича).
+- Source-ветку существующего MR менять нельзя (`mr edit` принимает только `--to`, не `--from`) — ограничение GitFlic API.

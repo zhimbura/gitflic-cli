@@ -1,6 +1,10 @@
 # Известные проблемы и обходы
 
-## `tag get <name>` возвращает 400 для большинства имён
+> CLI покрывает ~100% публичного REST API GitFlic. Перечисленные ниже ограничения — это
+> поведение **серверной стороны** GitFlic (а не баги CLI) либо эндпоинты, которых в публичном
+> REST просто нет. Команды реализованы по спецификации; ограничения снимаются на стороне сервиса.
+
+## `tag get <name>` возвращает HTTP 400 для любого имени
 
 **Симптом:**
 
@@ -9,9 +13,26 @@ gitflic tag get v1.0.0 --project FerdBur/wave
 gitflic: HTTP 400 — ...
 ```
 
-**Причина:** GitFlic API не поддерживает `GET /tag/{name}` для project-scoped запросов надёжно.
+**Причина:** GitFlic отдаёт `400` на `GET /tag/{name}` для любого имени тега — это поведение API.
 
-**Обход:** используйте `gitflic tag list | grep v1.0.0` или `gitflic tag list --format json | jq '.[] | select(.name == "v1.0.0")'`.
+**Обход:** используйте `tag list` + фильтрацию:
+
+```bash
+gitflic tag list --project FerdBur/wave | grep v1.0.0
+gitflic tag list --project FerdBur/wave --format json | jq '.[] | select(.name == "v1.0.0")'
+```
+
+---
+
+## `tag delete` — нет REST-эндпоинта
+
+Публичный REST GitFlic не предоставляет эндпоинт для удаления тегов.
+
+**Обход:** удаляйте тег через git:
+
+```bash
+git push origin :v1.0.0   # удаление тега через push
+```
 
 ---
 
@@ -24,9 +45,120 @@ gitflic mr merge 1 --project myorg/new-repo
 gitflic: HTTP 422 — MergeCheckException
 ```
 
-**Причина:** default branch protection требует approve от пользователя, который НЕ является автором MR. Это политика GitFlic по умолчанию.
+**Причина:** branch protection по умолчанию требует approve от пользователя, который **не является
+автором** MR. Это политика GitFlic по умолчанию, а не баг CLI.
 
-**Обход:** approve свой MR от другой личности (если есть), или измени branch protection через Web UI / `gitflic branch protection edit`.
+**Обход:** получите approve своего MR от другой учётки, либо ослабьте branch protection через
+Web UI / `gitflic branch protection edit`.
+
+---
+
+## `project archive` → HTTP 404 на публичном api.gitflic.ru
+
+**Симптом:**
+
+```
+gitflic project archive owner/alias --out repo.zip
+gitflic: HTTP 404 — Not Found
+URL: GET https://api.gitflic.ru/project/owner/alias/file/getArchive
+```
+
+**Причина:** эндпоинт `/file/getArchive` отключён на публичном SaaS (скачивание архива доступно
+только через Web UI). Команда реализована по спецификации.
+
+**Обход:** используйте `git clone`:
+
+```bash
+git clone https://gitflic.ru/project/owner/alias.git
+```
+
+---
+
+## `registry repo ...` (репозитории реестра) → 404 на публичном SaaS
+
+Подкоманды управления репозиториями реестра (`registry repo ...`) относятся к
+**Enterprise / Atlas**-функциональности и недоступны на публичном `api.gitflic.ru` (отдаёт `404`).
+Реализованы по спецификации (code-only) и работают только на соответствующем инстансе.
+
+Управление пакетами (`registry package ...`) на публичном SaaS работает.
+
+---
+
+## `release` — загрузка ассетов проверяется по типу файла (HTTP 415)
+
+**Симптом:**
+
+```
+gitflic release upload v1.0.0 ./notes.txt --project owner/alias
+gitflic: HTTP 415 — Unsupported Media Type
+```
+
+**Причина:** GitFlic валидирует тип загружаемого файла по allowlist на стороне сервера.
+Архивы (`.zip` и т. п.) проходят; `.txt`, `.png` и ряд других типов могут отдавать `415`.
+Это ограничение сервера, а не CLI.
+
+**Обход:** упакуйте файл в архив:
+
+```bash
+zip notes.zip notes.txt
+gitflic release upload v1.0.0 ./notes.zip --project owner/alias
+```
+
+---
+
+## `team` / `company`: edit и delete — только Web UI (HTTP 405)
+
+У GitFlic **нет** REST-эндпоинтов для редактирования и удаления команд и компаний — `PUT`/`DELETE`
+возвращают `405 Method Not Allowed`. Создание, просмотр и управление участниками работают через REST.
+
+**Обход:**
+
+- Редактирование/удаление — через Web UI.
+- Для передачи владения командой используйте `team transfer`:
+
+```bash
+gitflic team transfer my-team --to newowner
+```
+
+---
+
+## `settings access-token create` может требовать HTTP Basic auth
+
+Создание access-token на части инстансов требует **HTTP Basic auth** (логин + пароль), а не токен.
+
+**Симптом:** `401`/`403` при `settings access-token create`.
+
+**Обход:** создавайте токен через Web UI: **Профиль → API-токены → Создать**.
+
+---
+
+## HTTPS git push с токеном
+
+HTTPS git push работает с access-токеном — токен передаётся в URL:
+
+```bash
+git push https://oauth2:<TOKEN>@gitflic.ru/project/<owner>/<alias>.git <branch>
+```
+
+Альтернатива — SSH-ключ:
+
+```bash
+gitflic settings ssh add ~/.ssh/id_ed25519.pub --title "macbook"
+```
+
+---
+
+## `admin`, `saml`, instance-scoped `runner` — требуют прав инстанс-админа
+
+Команды уровня инстанса реализованы по спецификации, но требуют **прав инстанс-администратора**.
+С обычным токеном они отдают `403`/`404`:
+
+- `gitflic admin user list` / `admin project list` — admin-эндпоинты инстанса.
+- `gitflic saml ...` — настройки SAML SSO (только self-hosted с включённым SAML).
+- `gitflic runner ...` в instance-scope — управление runner'ами на уровне инстанса.
+
+**Обход:** используйте токен инстанс-админа либо Web UI. Project/team-scoped runner'ы при этом
+доступны обычному токену.
 
 ---
 
@@ -34,111 +166,20 @@ gitflic: HTTP 422 — MergeCheckException
 
 **Симптом:** `status.title` = «Открыт», «Слит», «Закрыт» (русский) вместо английских констант.
 
-**Решение:** CLI передаёт `Accept-Language: en` где возможно, но не все эндпоинты это уважают. Используйте `status.id` для машинной обработки (всегда английские константы: `OPENED`, `MERGED`, `CLOSED`, `CANCELED`, `FAILED`).
+**Решение:** CLI передаёт `Accept-Language: en`, где это возможно, но не все эндпоинты это уважают.
+Для машинной обработки используйте `status.id` — там всегда английские константы:
+`OPENED`, `MERGED`, `CLOSED`, `CANCELED`, `FAILED`.
 
 ---
 
-## SSH push требует SSH-ключ (не токен)
+## `registry package` upload использует `--fmt` (не `--format`)
 
-Transport-token (создаётся через `settings transport-token create`) **НЕ работает для HTTPS git push**. GitFlic, как и GitLab, требует SSH-ключ для push.
-
-**Обход:** добавь SSH-ключ через Web UI или через CLI:
+При загрузке пакета формат пакета задаётся флагом `--fmt`, потому что `--format` зарезервирован
+под формат вывода (`json` | `pretty`):
 
 ```bash
-gitflic settings ssh add ~/.ssh/id_ed25519.pub --title "macbook"
+gitflic registry package upload ./pkg.tgz --fmt npm --format json
 ```
-
-После этого `git push` через SSH работает без пароля.
-
----
-
-## `gitflic tag delete` — no-op с предупреждением
-
-Нет публичного REST-эндпоинта для удаления тегов.
-
-**Обход:**
-
-```bash
-git push origin :v1.0.0   # standard git tag delete via push
-```
-
----
-
-## Multipart upload endpoints — best-guess
-
-Для `release asset upload` и `issue attachment upload` URL эндпоинтов — best-guess на основе публичной API-документации. Если получаешь 404 — проверь `lib/cmd/release.mjs:140` и `lib/cmd/issue.mjs:217`, поправь URL.
-
-PR приветствуется.
-
----
-
-## Access-token через REST — нет
-
-Создание access-token требует **HTTP Basic auth** (логин + пароль). CLI не поддерживает Basic auth.
-
-**Обход:** создавай токены через Web UI в **Профиль → API-токены → Создать**.
-
----
-
-## `runner list` может быть пустым даже при наличии runner'ов
-
-**Симптом:** `gitflic runner list` возвращает пустой массив, хотя в Web UI runner'ы видны.
-
-**Причина:** возможно, у твоего токена нет admin scope для просмотра всех runner'ов (только self-hosted видимые лично тебе).
-
-**Обход:** используй admin-токен, или проверь через Web UI.
-
----
-
-## `cicd pipeline <id>` и `cicd jobs <pipelineId>` → HTTP 404
-
-**Симптом:**
-
-```
-gitflic cicd pipeline f7dc822f-9d79-408a-854c-81db89a0075c --project tikhon/gitflic-cli
-gitflic: HTTP 404  — Not Found
-URL: GET https://api.gitflic.ru/project/tikhon/gitflic-cli/cicd/pipeline/f7dc822f-9d79-408a-854c-81db89a0075c
-
-gitflic cicd jobs f7dc822f-9d79-408a-854c-81db89a0075c --project tikhon/gitflic-cli
-gitflic: HTTP 404  — Not Found
-URL: GET https://api.gitflic.ru/project/tikhon/gitflic-cli/cicd/pipeline/f7dc822f-9d79-408a-854c-81db89a0075c/jobs
-```
-
-**Причина:** публичный REST GitFlic отдаёт `GET /cicd/pipeline` (список) и `POST /cicd/pipeline/start` (запуск), но **не отдаёт** `GET /cicd/pipeline/{id}` и `GET /cicd/pipeline/{id}/jobs`. Web UI использует внутренний эндпоинт, недоступный по токену. Список (`cicd pipeline list`) при этом работает корректно.
-
-**Обход:** используй `cicd pipeline list --format json | jq '._embedded.restPipelineModelList[] | select(.id == "<id>")'` чтобы получить поля пайплайна. Для jobs конкретного pipeline — смотреть через Web UI (`https://gitflic.ru/project/{owner}/{alias}/-/ci-cd/pipeline/{id}/jobs`).
-
-**Статус:** заведено как баг в `lib/cmd/cicd.mjs` (TODO 0.3.0 — найти правильный эндпоинт через сниффинг web UI, либо явно die с этим текстом вместо 404).
-
----
-
-## `cicd pipeline list` в pretty-режиме показывает "(no pipelines)" хотя JSON непустой
-
-**Симптом (до 0.2.0):**
-
-```
-gitflic cicd pipeline list --project tikhon/gitflic-cli
-(no pipelines)
-
-gitflic cicd pipeline list --project tikhon/gitflic-cli --format json
-# { "_embedded": { "restPipelineModelList": [ ... 2 pipeline objects ... ] } }
-```
-
-**Причина:** CLI пытался достать список из `_embedded.pipelineList` / `_embedded.pipelines`, а реальный ключ HAL-коллекции GitFlic — `restPipelineModelList`. Pretty-принтер видел пустой массив и печатал "(no pipelines)".
-
-**Решено в 0.2.0:** `lib/cmd/cicd.mjs` теперь читает `restPipelineModelList` первым, со старыми ключами как fallback.
-
----
-
-## `saml list` — code-only, не live-tested
-
-Модуль реализован, но живое тестирование против self-hosted GitFlic с SAML SSO не проводилось. Если у тебя есть такой инстанс — проверь и открой issue если что-то сломано.
-
----
-
-## `admin` модуль — code-only
-
-`gitflic admin user list` / `admin project list` — реализованы, но используют admin-эндпоинты которые могут быть недоступны на твоём инстансе или требовать особых scope.
 
 ---
 
@@ -146,18 +187,16 @@ gitflic cicd pipeline list --project tikhon/gitflic-cli --format json
 
 CLI (`gitflic`) — **zero deps**, работает только на Node stdlib.
 
-MCP-сервер (`mcp-server/`) требует `@modelcontextprotocol/sdk`. Это сознательное решение — MCP-протокол слишком сложный чтобы реализовать руками, и SDK маленький (~2MB).
+MCP-сервер (`mcp-server/`) требует `@modelcontextprotocol/sdk`. Это сознательное решение — MCP-протокол
+слишком сложный, чтобы реализовать руками, а SDK небольшой (~2MB).
 
-Если ты используешь только CLI (не MCP), `npm install` в `mcp-server/` не нужен.
+Если вы используете только CLI (не MCP), `npm install` в `mcp-server/` не нужен.
 
 ---
 
-## Vitest warnings о esbuild
+## Исправленные баги
 
-При прогоне тестов может появиться:
-
-```
-Module "form-data" has been externalized
-```
-
-Это нормально — vitest lazy-loads модули. Не влияет на результаты тестов.
+- **BUG-001 — `mr diff` не декодировал HTML-entities (`&quot;`, `&lt;`, `&gt;`, `&amp;`).**
+  ✅ **Исправлено.** Добавлен `htmlUnescape()` в `lib/format.mjs`, применяется к строкам диффа и
+  заголовкам ханков в `printChanges()` (`lib/cmd/mr.mjs`). Декодирование однопроходное (`&amp;`
+  обрабатывается без двойного прохода), покрыто тестами в `lib/__tests__/format.test.mjs`.
