@@ -6,3 +6,11 @@ node_modules/
 coverage/
 .vitest/
 dist/
+
+# Throwaway screenshots dropped by past agent sessions / smoke tests
+# in the project root. Keep canonical assets under docs/_media/.
+*.png
+
+# Local-only agent context (not for git — read by future Mavis sessions on this machine)
+.mavis/
+AGENTS.local.md

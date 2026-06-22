@@ -1,0 +1,9 @@
+# Timeweb Apps config for gitflic-cli docs + release artifacts.
+# Static site: Docsify docs/ + tarballs in docs/releases/.
+# Deployed manually via Timeweb Cloud Console (web upload) since
+# the twc CLI does not expose an upload command.
+app:
+  name: gitflic-cli-docs
+  type: frontend
+  preset: another
+  comment: gitflic-cli docs + release tarballs (manual upload)
