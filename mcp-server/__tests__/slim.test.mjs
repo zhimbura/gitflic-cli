@@ -137,6 +137,19 @@ describe("slimResult — client-side list filtering (problem #1)", () => {
     expect(slimResult("gitflic_issue_list", raw, { limit: "abc" }, {}).returned).toBe(3);
     expect(slimResult("gitflic_issue_list", raw, { limit: -1 }, {}).returned).toBe(3);
   });
+  it("q matches user fields (username/fullName) — user_search regression", () => {
+    const users = {
+      _embedded: { userList: [
+        { id: "1", username: "tikhon", fullName: "Тихон Устинов", avatar: "x" },
+        { id: "2", username: "someone-else", fullName: "Other", avatar: "y" },
+      ] },
+      page: { totalElements: 2 },
+    };
+    const out = slimResult("gitflic_user_search", users, { q: "tikhon" }, {});
+    expect(out.items.map((u) => u.username)).toEqual(["tikhon"]);
+    expect(out.matched).toBe(1);
+  });
+
   it("hasFilter detects only real filter args", () => {
     expect(hasFilter({ label: "x" })).toBe(true);
     expect(hasFilter({ project: "o/a", page: 1 })).toBe(false);

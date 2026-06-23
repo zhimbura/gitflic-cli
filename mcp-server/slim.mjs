@@ -223,7 +223,15 @@ export function applyListFilters(items, args = {}) {
   if (args.name) { const re = globToRe(args.name); out = out.filter((i) => re.test(i.name ?? "") || ci(i.name).includes(ci(args.name))); }
   if (args.q) {
     const q = ci(args.q);
-    out = out.filter((i) => `${i.title ?? ""} ${i.description ?? ""} ${i.shortMessage ?? ""} ${i.message ?? ""}`.toLowerCase().includes(q));
+    // Haystack spans every entity's free-text/identity fields so `q` works for
+    // issues/MRs (title+description), commits (messages), users (username/
+    // fullName/name), projects (title/alias) and releases (tagName). Missing
+    // fields collapse to "" — harmless. (Bug fix: user_search used to drop all
+    // server results because the haystack lacked username/fullName.)
+    out = out.filter((i) =>
+      `${i.title ?? ""} ${i.description ?? ""} ${i.shortMessage ?? ""} ${i.message ?? ""} ${i.username ?? ""} ${i.fullName ?? ""} ${i.name ?? ""} ${i.alias ?? ""} ${i.tagName ?? ""}`
+        .toLowerCase()
+        .includes(q));
   }
   if (args.sort) {
     const desc = String(args.sort)[0] === "-";

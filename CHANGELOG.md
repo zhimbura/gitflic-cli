@@ -1,5 +1,11 @@
 # Changelog
 
+## gitflic-cli-mcp 0.4.1 — 2026-06-24 — fix: slim `q`-фильтр отбрасывал результаты поиска
+
+> Релиз только MCP-пакета. CLI `gitflic-cli` без изменений — остаётся 0.3.5.
+
+- **Live-прогон всех 77 тулзов** (рой агентов гонял CLI в бою на тест-репо) выявил баг: клиентский `q`-фильтр в `slim.mjs` искал только по `title`/`description`/`shortMessage`/`message`, поэтому `gitflic_user_search` отбрасывал **все** найденные сервером результаты (`matched:0`) — у пользователей нет `title`/`description`. Haystack расширен: добавлены `username`/`fullName`/`name`/`alias`/`tagName`, так что `q` корректно работает для user/project/release. Тест + живая проверка. (Итог прогона: 69 ✓, 0 падений; остальные — легитимные skip: auth-мутации keychain, member-invite, `tag get` 400-quirk, mr-discuss без треда.)
+
 ## gitflic-cli 0.3.5 — 2026-06-24 — fix: ещё несколько partial-edit затирали поля
 
 После фикса `issue edit` (0.3.4) — аудит **всех** мутирующих хендлеров на тот же класс (GitFlic PUT заменяет объект целиком, поэтому частичный edit без read-merge стирает не переданные поля). Найдено и починено через read-merge (как `mr edit`/`release edit`):
