@@ -30,6 +30,20 @@ export function isReadOnly(tool) {
   return Boolean(tool.annotations && tool.annotations.readOnlyHint === true);
 }
 
+// "Really destructive" = irreversible deletion. This is a deliberately NARROW
+// set (deletions only) used by GITFLIC_MCP_NO_DESTRUCTIVE, which removes these
+// tools at registration — a hard server-side guarantee, stronger than the
+// host's approval prompt (which a user can blanket-allow).
+//
+// Note: this is independent of the MCP `destructiveHint` annotation. Other
+// mutating ops (create/edit/close/cancel and gitflic_mr_merge) keep
+// destructiveHint:true and still go through the host's approval flow — they are
+// NOT removed by this flag. mr_merge is irreversible but is not a deletion, so
+// it is intentionally excluded here.
+export function isDestructive(tool) {
+  return /_delete$/.test(tool.name);
+}
+
 // Parse a comma/space-separated env value into a clean array.
 function parseList(value, { lower = false } = {}) {
   if (!value) return [];
@@ -43,11 +57,18 @@ function parseList(value, { lower = false } = {}) {
 const TRUTHY = ["1", "true", "yes", "on"];
 const FALSEY = ["0", "false", "no", "off", ""];
 
-// Truthy env flag: "1", "true", "yes", "on" (case-insensitive). Anything
-// else (including "0", "false", "", undefined) is falsey.
-function isTruthy(value) {
-  if (value == null) return false;
-  return TRUTHY.includes(String(value).trim().toLowerCase());
+// Parse a boolean env flag: "1"/"true"/"yes"/"on" → true (case-insensitive);
+// "0"/"false"/"no"/"off"/"" → false. Anything else is treated as false but
+// pushes a warning so a typo (e.g. "enabled") isn't silently ignored.
+function boolFlag(raw, name, warnings) {
+  if (raw == null) return false;
+  const v = String(raw).trim().toLowerCase();
+  if (v !== "" && !TRUTHY.includes(v) && !FALSEY.includes(v)) {
+    warnings.push(
+      `${name}="${raw}" is not a recognized boolean (use 1/true/yes/on); treating as off.`,
+    );
+  }
+  return TRUTHY.includes(v);
 }
 
 // Select which tools to register based on env config.
@@ -58,7 +79,8 @@ function isTruthy(value) {
 //        - GITFLIC_MCP_GROUPS (by group), if set; else
 //        - all tools.
 //   2. GITFLIC_MCP_READONLY truthy → keep only read-only tools (overlay).
-//   3. GITFLIC_MCP_EXCLUDE → drop named tools (applied last, always wins).
+//   3. GITFLIC_MCP_NO_DESTRUCTIVE truthy → drop deletion tools (overlay).
+//   4. GITFLIC_MCP_EXCLUDE → drop named tools (applied last, always wins).
 //
 // Returns { selected, warnings } — warnings are human-readable strings the
 // caller prints to stderr. Unknown names/groups are warned about, not fatal.
@@ -74,16 +96,12 @@ export function selectTools(tools, env = {}) {
   const wantGroups = parseList(env.GITFLIC_MCP_GROUPS, { lower: true });
   const exclude = parseList(env.GITFLIC_MCP_EXCLUDE, { lower: true });
 
-  const readonlyRaw = env.GITFLIC_MCP_READONLY;
-  const readonly = isTruthy(readonlyRaw);
-  if (readonlyRaw != null) {
-    const v = String(readonlyRaw).trim().toLowerCase();
-    if (v !== "" && !TRUTHY.includes(v) && !FALSEY.includes(v)) {
-      warnings.push(
-        `GITFLIC_MCP_READONLY="${readonlyRaw}" is not a recognized boolean (use 1/true/yes/on); treating as off.`,
-      );
-    }
-  }
+  const readonly = boolFlag(env.GITFLIC_MCP_READONLY, "GITFLIC_MCP_READONLY", warnings);
+  const noDestructive = boolFlag(
+    env.GITFLIC_MCP_NO_DESTRUCTIVE,
+    "GITFLIC_MCP_NO_DESTRUCTIVE",
+    warnings,
+  );
 
   let base;
   if (wantTools.length) {
@@ -119,6 +137,10 @@ export function selectTools(tools, env = {}) {
         "GITFLIC_MCP_READONLY removed every selected tool (the selection contained only write tools).",
       );
     }
+  }
+
+  if (noDestructive) {
+    base = base.filter((t) => !isDestructive(t));
   }
 
   if (exclude.length) {

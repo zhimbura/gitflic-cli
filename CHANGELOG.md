@@ -1,5 +1,11 @@
 # Changelog
 
+## gitflic-cli-mcp 0.3.0 — 2026-06-23
+
+> Релиз только MCP-пакета (`gitflic-cli-mcp`). CLI `gitflic-cli` без изменений — остаётся 0.3.0.
+
+- **`GITFLIC_MCP_NO_DESTRUCTIVE=1`** — новый overlay-флаг: жёстко (на уровне регистрации) убирает деструктивные тулзы — **7 удаляющих** (`*_delete`: issue/issue_comments/mr_discuss/branch/branch_protection/release/webhook). Надёжнее, чем approval-prompt хоста (его можно прокликать / «разрешить всё»). Остальные мутации (`*_create`/`*_edit`/`*_close`/`gitflic_mr_merge`) остаются и идут через подтверждение (`destructiveHint` не меняли). Цепочка overlay'ев: база → `READONLY` → `NO_DESTRUCTIVE` → `EXCLUDE`. Логика в `mcp-server/filter.mjs`, покрыта тестами.
+
 ## gitflic-cli-mcp 0.2.0 — 2026-06-23
 
 > Релиз только MCP-пакета (`gitflic-cli-mcp`). CLI `gitflic-cli` без изменений — остаётся 0.3.0.

@@ -2,6 +2,12 @@
 
 Все значимые изменения в `gitflic-cli`. Формат — приближённый к [Keep a Changelog](https://keepachangelog.com/).
 
+## [gitflic-cli-mcp 0.3.0] — 2026-06-23
+
+> Релиз только MCP-пакета. CLI `gitflic-cli` без изменений (0.3.0).
+
+- **`GITFLIC_MCP_NO_DESTRUCTIVE=1`** — overlay-флаг, который жёстко убирает 7 удаляющих тулзов (`*_delete`) на уровне регистрации (надёжнее approval-prompt'а). Остальные мутации, включая `gitflic_mr_merge`, остаются и идут через подтверждение хоста. Цепочка: база → `READONLY` → `NO_DESTRUCTIVE` → `EXCLUDE`.
+
 ## [gitflic-cli-mcp 0.2.0] — 2026-06-23
 
 > Релиз только MCP-пакета. CLI `gitflic-cli` без изменений (0.3.0).

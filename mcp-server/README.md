@@ -72,6 +72,7 @@ claude mcp add gitflic --env GITFLIC_TOKEN=xxxxxxxx -- npx -y gitflic-cli-mcp
 |---|---|---|
 | `GITFLIC_MCP_GROUPS` | список групп через запятую/пробел | оставить только тулзы указанных групп |
 | `GITFLIC_MCP_READONLY` | `1` / `true` / `yes` / `on` | оставить только read-only тулзы (без мутаций) |
+| `GITFLIC_MCP_NO_DESTRUCTIVE` | `1` / `true` / `yes` / `on` | убрать деструктивные тулзы (удаление) — см. ниже |
 | `GITFLIC_MCP_TOOLS` | список имён тулзов | явный allowlist (имеет приоритет над `GROUPS`) |
 | `GITFLIC_MCP_EXCLUDE` | список имён тулзов | убрать конкретные тулзы (применяется последним) |
 
@@ -81,7 +82,8 @@ claude mcp add gitflic --env GITFLIC_TOKEN=xxxxxxxx -- npx -y gitflic-cli-mcp
 
 1. Базовый набор: `GITFLIC_MCP_TOOLS`, если задан; иначе `GITFLIC_MCP_GROUPS`, если задан; иначе — все тулзы.
 2. `GITFLIC_MCP_READONLY` — пересечение с read-only (накладывается поверх **в т.ч. на `GITFLIC_MCP_TOOLS`** — write-тул, явно указанный в allowlist, всё равно будет отсеян; так read-only режим гарантированно не пропускает мутации).
-3. `GITFLIC_MCP_EXCLUDE` — вычитается в самом конце (всегда побеждает).
+3. `GITFLIC_MCP_NO_DESTRUCTIVE` — вычитает деструктивные (удаление) тулзы (поверх базы/READONLY).
+4. `GITFLIC_MCP_EXCLUDE` — вычитается в самом конце (всегда побеждает).
 
 Значения списков — через запятую или пробел; регистр не важен ни для групп, ни для имён тулзов (имена всегда в нижнем регистре).
 
@@ -103,6 +105,16 @@ claude mcp add gitflic --env GITFLIC_TOKEN=xxxxxxxx -- npx -y gitflic-cli-mcp
 
 > ⚠️ Группа `auth` включает **мутирующие** тулзы (`gitflic_auth_login`, `_logout`, `_switch`, `_bind`, `_unbind`) — они меняют локальный keychain/конфиг, а не сервер, но это всё равно запись. Если нужны только проверки личности — добавь `GITFLIC_MCP_READONLY=1` (останутся `gitflic_auth`, `_list`, `_bindings`) или используй `GITFLIC_MCP_TOOLS` с точным набором.
 
+**`GITFLIC_MCP_NO_DESTRUCTIVE=1` — выключить удаление одним флагом.**
+
+Жёстко (на уровне регистрации, не через approval-prompt хоста) убирает **только удаляющие** тулзы — модель их вообще не видит. Это надёжнее, чем полагаться на подтверждение в хосте, которое можно прокликать или «разрешить всё агенту».
+
+Деструктивный набор (7 — всё, что заканчивается на `_delete`):
+
+`gitflic_issue_delete` · `gitflic_issue_comments_delete` · `gitflic_mr_discuss_delete` · `gitflic_branch_delete` · `gitflic_branch_protection_delete` · `gitflic_release_delete` · `gitflic_webhook_delete`
+
+Остальные мутации (`*_create`, `*_edit`, `*_close`, `*_cancel`, `gitflic_mr_merge` и т.п.) **остаются** — у них сохраняется `destructiveHint: true`, так что хост по-прежнему спрашивает подтверждение. `gitflic_mr_merge` необратим, но это не удаление — он намеренно вне флага и идёт через approval.
+
 **Примеры:**
 
 ```bash
@@ -112,6 +124,9 @@ claude mcp add gitflic --env GITFLIC_TOKEN=xxxx \
 
 # Read-only агент для код-ревью (только тулзы без мутаций)
 GITFLIC_MCP_READONLY=1 npx -y gitflic-cli-mcp
+
+# Может всё, кроме удаления (70 тулзов: создаёт/правит/мёрджит — но не удаляет)
+GITFLIC_MCP_NO_DESTRUCTIVE=1 npx -y gitflic-cli-mcp
 
 # Точный набор из четырёх тулзов
 GITFLIC_MCP_TOOLS="gitflic_mr_list,gitflic_mr_view,gitflic_mr_diff,gitflic_mr_create" \

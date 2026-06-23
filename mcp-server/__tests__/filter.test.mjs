@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { TOOLS } from "../tools.mjs";
-import { selectTools, toolGroup, groupsOf, isReadOnly } from "../filter.mjs";
+import { selectTools, toolGroup, groupsOf, isReadOnly, isDestructive } from "../filter.mjs";
 
 describe("toolGroup", () => {
   it("derives the group from the name prefix", () => {
@@ -157,6 +157,83 @@ describe("selectTools — EXCLUDE", () => {
   it("warns on unknown excluded names", () => {
     const { warnings } = selectTools(TOOLS, { GITFLIC_MCP_EXCLUDE: "gitflic_nope" });
     expect(warnings.some((w) => w.includes('"gitflic_nope"'))).toBe(true);
+  });
+});
+
+describe("isDestructive", () => {
+  it("flags only deletion tools", () => {
+    expect(isDestructive({ name: "gitflic_issue_delete" })).toBe(true);
+    expect(isDestructive({ name: "gitflic_branch_protection_delete" })).toBe(true);
+  });
+
+  it("does NOT flag merge, create, edit, close (option A: deletes only)", () => {
+    for (const name of [
+      "gitflic_mr_merge",
+      "gitflic_mr_create",
+      "gitflic_issue_edit",
+      "gitflic_mr_close",
+      "gitflic_mr_cancel",
+      "gitflic_auth_logout",
+    ]) {
+      expect(isDestructive({ name }), name).toBe(false);
+    }
+  });
+});
+
+describe("selectTools — NO_DESTRUCTIVE", () => {
+  it("drops exactly the 7 named deletion tools, keeps everything else incl. mr_merge", () => {
+    const { selected } = selectTools(TOOLS, { GITFLIC_MCP_NO_DESTRUCTIVE: "1" });
+    const removed = TOOLS.map((t) => t.name).filter((n) => !selected.map((t) => t.name).includes(n));
+    expect(removed.sort()).toEqual([
+      "gitflic_branch_delete",
+      "gitflic_branch_protection_delete",
+      "gitflic_issue_comments_delete",
+      "gitflic_issue_delete",
+      "gitflic_mr_discuss_delete",
+      "gitflic_release_delete",
+      "gitflic_webhook_delete",
+    ]);
+    expect(selected.length).toBe(TOOLS.length - 7);
+    expect(selected.map((t) => t.name)).toContain("gitflic_mr_merge");
+  });
+
+  it("removes a delete tool even when explicitly allowlisted (anti-leak)", () => {
+    const { selected } = selectTools(TOOLS, {
+      GITFLIC_MCP_TOOLS: "gitflic_issue_delete",
+      GITFLIC_MCP_NO_DESTRUCTIVE: "1",
+    });
+    expect(selected).toEqual([]);
+  });
+
+  it("composes with GROUPS (drops in-group deletes only)", () => {
+    const { selected } = selectTools(TOOLS, {
+      GITFLIC_MCP_GROUPS: "issue",
+      GITFLIC_MCP_NO_DESTRUCTIVE: "1",
+    });
+    const names = selected.map((t) => t.name);
+    expect(names).not.toContain("gitflic_issue_delete");
+    expect(names).not.toContain("gitflic_issue_comments_delete");
+    expect(names).toContain("gitflic_issue_create");
+    expect(names.every((n) => n.startsWith("gitflic_issue"))).toBe(true);
+  });
+
+  it("accepts truthy variants and warns on garbage", () => {
+    for (const v of ["1", "true", "YES", "on"]) {
+      const { selected } = selectTools(TOOLS, { GITFLIC_MCP_NO_DESTRUCTIVE: v });
+      expect(selected.filter(isDestructive)).toEqual([]);
+    }
+    const { selected, warnings } = selectTools(TOOLS, { GITFLIC_MCP_NO_DESTRUCTIVE: "enabled" });
+    expect(selected.length).toBe(TOOLS.length);
+    expect(warnings.some((w) => w.includes("not a recognized boolean"))).toBe(true);
+  });
+
+  it("is a no-op under READONLY (deletes are already gone)", () => {
+    const ro = selectTools(TOOLS, { GITFLIC_MCP_READONLY: "1" }).selected.length;
+    const both = selectTools(TOOLS, {
+      GITFLIC_MCP_READONLY: "1",
+      GITFLIC_MCP_NO_DESTRUCTIVE: "1",
+    }).selected.length;
+    expect(both).toBe(ro);
   });
 });
 

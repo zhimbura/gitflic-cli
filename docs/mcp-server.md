@@ -94,12 +94,15 @@ claude mcp add gitflic --env GITFLIC_TOKEN=xxxxxxxx -- npx -y gitflic-cli-mcp
 |---|---|---|
 | `GITFLIC_MCP_GROUPS` | список групп через запятую/пробел | оставить только тулзы указанных групп |
 | `GITFLIC_MCP_READONLY` | `1` / `true` / `yes` / `on` | оставить только read-only тулзы (без мутаций) |
+| `GITFLIC_MCP_NO_DESTRUCTIVE` | `1` / `true` / `yes` / `on` | убрать деструктивные (удаление) тулзы |
 | `GITFLIC_MCP_TOOLS` | список имён тулзов | явный allowlist (приоритет над `GROUPS`) |
 | `GITFLIC_MCP_EXCLUDE` | список имён тулзов | убрать конкретные тулзы (применяется последним) |
 
 Все опциональны; без них регистрируются все 77. Неизвестные имена/группы не валят старт — сервер пишет `WARN` в stderr и игнорирует их. Регистр в списках не важен.
 
-**Порядок применения:** базовый набор (`GITFLIC_MCP_TOOLS` → иначе `GITFLIC_MCP_GROUPS` → иначе все) → пересечение с read-only при `GITFLIC_MCP_READONLY` (накладывается и на allowlist, так что write-тул не «протечёт» в read-only режим) → вычитание `GITFLIC_MCP_EXCLUDE` в конце.
+**Порядок применения:** базовый набор (`GITFLIC_MCP_TOOLS` → иначе `GITFLIC_MCP_GROUPS` → иначе все) → пересечение с read-only при `GITFLIC_MCP_READONLY` (накладывается и на allowlist, так что write-тул не «протечёт» в read-only режим) → вычитание деструктивных при `GITFLIC_MCP_NO_DESTRUCTIVE` → вычитание `GITFLIC_MCP_EXCLUDE` в конце.
+
+**`GITFLIC_MCP_NO_DESTRUCTIVE=1`** жёстко убирает (на уровне регистрации, не через approval-prompt) **только удаляющие** тулзы — 7 шт. на `_delete`: `issue_delete`, `issue_comments_delete`, `mr_discuss_delete`, `branch_delete`, `branch_protection_delete`, `release_delete`, `webhook_delete`. Остальные мутации (`*_create` / `*_edit` / `*_close` / `gitflic_mr_merge`) остаются и идут через подтверждение хоста (`destructiveHint:true`). Это надёжнее approval'а, который можно прокликать.
 
 **Допустимые значения `GITFLIC_MCP_GROUPS`** (группа = первый сегмент имени после `gitflic_`):
 
@@ -126,6 +129,9 @@ claude mcp add gitflic --env GITFLIC_TOKEN=xxxx \
 
 # Read-only агент для код-ревью (40 read-only тулзов)
 GITFLIC_MCP_READONLY=1 npx -y gitflic-cli-mcp
+
+# Может всё, кроме удаления (70 тулзов)
+GITFLIC_MCP_NO_DESTRUCTIVE=1 npx -y gitflic-cli-mcp
 ```
 
 ```json
