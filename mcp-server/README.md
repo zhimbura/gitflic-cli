@@ -153,7 +153,22 @@ GITFLIC_MCP_TOOLS="gitflic_mr_list,gitflic_mr_view,gitflic_mr_diff,gitflic_mr_cr
 
 > Можно поднять один и тот же сервер дважды под разными именами — напр. `gitflic` (полный) и `gitflic-ro` (`GITFLIC_MCP_READONLY=1`) — и держать оба подключёнными. Либо класть конфиг в проектный `.mcp.json` / `.cursor/mcp.json`, чтобы в каждом репозитории грузились свои группы.
 
-## Все 76 тулзов
+## Сжатие ответов (экономия токенов)
+
+GitFlic REST API отдаёт «сырой» JSON с кучей бесполезного для LLM шума: URL аватаров/обложек, `hexColor` лейблов, `status` из 9 полей, вложенные объекты юзеров целиком, HAL-обёртки `_embedded`/`_links`. По умолчанию MCP **сжимает** ответы перед отдачей модели: разворачивает list-обёртку в `{ items, total, matched, returned }`, проецирует каждую сущность до нужных полей и схлопывает мусор. На реальных данных — **≈70% меньше токенов** (на коммитах/ветках до 84%). CLI `--format json` при этом остаётся «сырым» — сжатие живёт только в MCP-слое.
+
+| Переменная / аргумент | Значения | Эффект |
+| --- | --- | --- |
+| `GITFLIC_MCP_OUTPUT` | `slim` (по умолч.) / `full` (=`raw`) | глобальный режим: `full` = старый сырой ответ один-в-один |
+| `GITFLIC_MCP_RAW` | `1`/`true`/`yes`/`on` | то же, что `OUTPUT=full` (булев алиас, побеждает при конфликте) |
+| аргумент `raw: true` | на **любом** тулзе | вернуть полный несжатый ответ для **одного** вызова — если модели не хватило поля в slim-виде |
+| аргумент `fields: [...]` | на read/list тулзах | вернуть только указанные поля (+ id-ключи) |
+
+**Фильтрация списков на стороне MCP.** У GitFlic почти нет серверных фильтров для списков, поэтому list-тулзы принимают аргументы фильтра/сортировки (`label`, `q`, `assignee`, `status`, `author`, `name`, `sort`, `limit`, …). При их наличии хендлер автоматически дотягивает `--all` (полный набор), фильтрует и возвращает только совпадения + `matched`/`total`. Напр. «найди открытые issue с лейблом Security» вернёт 3 совпадения вместо всех 60.
+
+**Секреты вебхуков.** В slim-режиме `secret` маскируется в `secretSet: true|false` — сырой ответ его раньше **утекал** в модель. Прочитать реальное значение можно тулзом `gitflic_webhook_reveal_secret` — он помечен деструктивным, поэтому MCP-хост спросит подтверждение перед выдачей.
+
+## Все 77 тулзов
 
 Полный список по группам. **R** = read-only (`readOnlyHint: true`, не меняет состояние — попадает в `GITFLIC_MCP_READONLY=1`); **W** = write/мутация.
 
@@ -187,10 +202,10 @@ GITFLIC_MCP_TOOLS="gitflic_mr_list,gitflic_mr_view,gitflic_mr_diff,gitflic_mr_cr
 ### `user` (5)
 `R` `gitflic_user_me` · `R` `gitflic_user_search` · `R` `gitflic_user_get` · `R` `gitflic_user_projects` · `R` `gitflic_user_followers`
 
-### `webhook` (4)
-`R` `gitflic_webhook_list` · `R` `gitflic_webhook_get` · `W` `gitflic_webhook_create` · `W` `gitflic_webhook_delete`
+### `webhook` (5)
+`R` `gitflic_webhook_list` · `R` `gitflic_webhook_get` · `W` `gitflic_webhook_create` · `W` `gitflic_webhook_delete` · `W` `gitflic_webhook_reveal_secret` (требует подтверждения хоста)
 
-Итого: **39 read / 37 write**. Каждый тул маппится 1-в-1 на подкоманду CLI (`gitflic …`).
+Итого: **39 read / 38 write**. Каждый тул маппится 1-в-1 на подкоманду CLI (`gitflic …`).
 
 ## Как это работает
 

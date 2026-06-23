@@ -110,6 +110,54 @@ describe("annotations integrity", () => {
   });
 });
 
+describe("issue #1: token-slimming tool surface", () => {
+  const byName = (n) => TOOLS.find((t) => t.name === n);
+
+  it("every tool gets a `raw` boolean escape-hatch arg", () => {
+    for (const t of TOOLS) {
+      expect(t.inputSchema.properties.raw, t.name).toBeDefined();
+      expect(t.inputSchema.properties.raw.type).toBe("boolean");
+    }
+  });
+
+  it("read/list tools get a `fields` array arg", () => {
+    expect(byName("gitflic_issue_list").inputSchema.properties.fields?.type).toBe("array");
+    expect(byName("gitflic_issue_view").inputSchema.properties.fields?.type).toBe("array");
+  });
+
+  it("issue_list exposes label/q/assignee/sort/limit filters", () => {
+    const p = byName("gitflic_issue_list").inputSchema.properties;
+    for (const k of ["label", "q", "assignee", "sort", "limit"]) expect(p[k], k).toBeDefined();
+  });
+
+  it("mr_list exposes status/author/q/sort/limit filters", () => {
+    const p = byName("gitflic_mr_list").inputSchema.properties;
+    for (const k of ["status", "author", "q", "sort", "limit"]) expect(p[k], k).toBeDefined();
+  });
+
+  it("list handler appends --all only when a filter/sort/limit arg is present", () => {
+    const h = byName("gitflic_issue_list").handler;
+    expect(h({ project: "o/a" })).not.toContain("--all"); // default = single page
+    expect(h({ project: "o/a", label: "Security" })).toContain("--all");
+    expect(h({ project: "o/a", limit: 5 })).toContain("--all");
+  });
+
+  it("project_list_my forwards q server-side (--q) and triggers --all", () => {
+    const argv = byName("gitflic_project_list_my").handler({ q: "cli" });
+    expect(argv).toContain("--q");
+    expect(argv).toContain("cli");
+    expect(argv).toContain("--all");
+  });
+
+  it("has an approval-gated webhook secret reveal tool (destructive, not read-only)", () => {
+    const t = byName("gitflic_webhook_reveal_secret");
+    expect(t).toBeDefined();
+    expect(t.annotations.readOnlyHint).toBe(false);
+    expect(t.annotations.destructiveHint).toBe(true);
+    expect(t.handler({ project: "o/a", uuid: "u-1" }).slice(0, 2)).toEqual(["webhook", "get"]);
+  });
+});
+
 describe("key tools exist", () => {
   it("has high-value tools we want to keep", () => {
     const want = [

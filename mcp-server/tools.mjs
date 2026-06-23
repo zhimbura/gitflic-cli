@@ -1376,6 +1376,24 @@ export const TOOLS = [
       openWorldHint: true,
     },
   },
+  {
+    name: "gitflic_webhook_reveal_secret",
+    description:
+      "Reveal the raw signing secret of a webhook. SENSITIVE: by default the MCP masks secrets (returns secretSet:true/false). This tool returns the actual secret value and is marked destructive so the MCP host prompts for approval before it runs. Use only when the user explicitly needs the secret value.",
+    inputSchema: {
+      type: "object",
+      required: ["project", "uuid"],
+      properties: { project: { type: "string" }, uuid: { type: "string" } },
+    },
+    handler: (a) => ["webhook", "get", a.uuid, "--project", a.project, "--format", "json"],
+    annotations: {
+      title: "Webhook Reveal Secret",
+      readOnlyHint: false, // not read-only on purpose: triggers the host approval prompt
+      destructiveHint: true,
+      idempotentHint: true,
+      openWorldHint: true,
+    },
+  },
 
   // ===== Project: get / create / edit / member list =====================
   {
@@ -1603,6 +1621,120 @@ export const TOOLS = [
     },
   },
 ];
+
+// ===== issue #1: token-slimming support (applied uniformly, post-definition) =
+// Kept here (not inline on every tool) so the surface is one DRY block.
+//
+//  - `raw`    : per-call escape hatch on EVERY tool — returns the full,
+//               un-slimmed GitFlic response for that call (the slim layer in
+//               slim.mjs honors it). Complements GITFLIC_MCP_RAW (global).
+//  - `fields` : on read/list tools — narrow the response to the named
+//               top-level fields (plus id keys).
+//  - filter/sort/limit args on list tools — consumed client-side by slim.mjs
+//               (GitFlic has almost no server-side list filters). When any is
+//               present, the handler also appends `--all` so the filter sees
+//               the whole set, not just page 0.
+const STR = (description) => ({ type: "string", description });
+const NUM = (description) => ({ type: "number", description });
+const BOOL = (description) => ({ type: "boolean", description });
+
+// Per-list-tool filter args (name -> JSON-schema prop).
+const FILTER_PROPS = {
+  gitflic_issue_list: {
+    label: STR("Keep only issues with a label whose title contains this (case-insensitive)."),
+    assignee: STR("Keep only issues assigned to this username."),
+    q: STR("Free-text filter over title + description."),
+    sort: STR("Sort by a field; prefix '-' for descending (e.g. '-createdAt')."),
+    limit: NUM("Return at most N issues after filtering/sorting."),
+  },
+  gitflic_mr_list: {
+    status: STR("Filter by status (OPENED|MERGED|CLOSED|CANCELED|FAILED)."),
+    author: STR("Keep only MRs by this author username."),
+    targetBranch: STR("Keep only MRs targeting a branch matching this."),
+    sourceBranch: STR("Keep only MRs from a source branch matching this."),
+    q: STR("Free-text filter over title + description."),
+    sort: STR("Sort field; prefix '-' for descending."),
+    limit: NUM("Return at most N."),
+  },
+  gitflic_commit_list: {
+    author: STR("Keep only commits by this author."),
+    q: STR("Free-text filter over the commit message."),
+    sort: STR("Sort field; prefix '-' for descending."),
+    limit: NUM("Return at most N (e.g. last 10 commits)."),
+  },
+  gitflic_release_list: {
+    preRelease: BOOL("true = only pre-releases, false = only stable."),
+    tag: STR("Keep only releases whose tagName contains this."),
+    q: STR("Free-text filter over title + description."),
+    sort: STR("Sort field; prefix '-' for descending."),
+    limit: NUM("Return at most N (e.g. last 3 releases)."),
+  },
+  gitflic_branch_list: {
+    name: STR("Glob/substring filter on branch name (e.g. 'release/*')."),
+    merged: BOOL("true = only merged branches, false = only unmerged."),
+    sort: STR("Sort field; prefix '-' for descending."),
+    limit: NUM("Return at most N."),
+  },
+  gitflic_tag_list: {
+    name: STR("Glob/substring filter on tag name (e.g. 'v1.*')."),
+    lightWeight: BOOL("true = only lightweight tags, false = only annotated."),
+    sort: STR("Sort field; prefix '-' for descending."),
+    limit: NUM("Return at most N."),
+  },
+  gitflic_webhook_list: {
+    event: STR("Keep only webhooks subscribed to this event (e.g. MERGE)."),
+    limit: NUM("Return at most N."),
+  },
+  gitflic_project_list_my: {
+    q: STR("Name/text filter (forwarded to GitFlic server-side, plus client match)."),
+    language: STR("Keep only projects in this language."),
+    private: BOOL("true = only private, false = only public."),
+    sort: STR("Sort field; prefix '-' for descending."),
+    limit: NUM("Return at most N."),
+  },
+  gitflic_user_projects: {
+    language: STR("Keep only projects in this language."),
+    private: BOOL("true = only private, false = only public."),
+    q: STR("Name/text filter."),
+    sort: STR("Sort field; prefix '-' for descending."),
+    limit: NUM("Return at most N."),
+  },
+  gitflic_user_followers: {
+    q: STR("Username substring filter."),
+    limit: NUM("Return at most N."),
+  },
+};
+const LIST_TOOLS = new Set(Object.keys(FILTER_PROPS));
+// Args whose presence means "fetch everything, then filter client-side".
+const ALL_TRIGGER = [
+  "label", "assignee", "author", "status", "targetBranch", "sourceBranch", "q",
+  "name", "tag", "event", "language", "merged", "preRelease", "private", "lightWeight", "sort", "limit",
+];
+const needsAll = (a = {}) => ALL_TRIGGER.some((k) => a[k] !== undefined && a[k] !== "" && a[k] !== null);
+
+for (const t of TOOLS) {
+  const props = t.inputSchema.properties || (t.inputSchema.properties = {});
+  if (!props.raw) {
+    props.raw = BOOL(
+      "Return the full, un-slimmed GitFlic response for THIS call (no token compression). Use when the default slim view dropped a field you need.",
+    );
+  }
+  if ((t.annotations?.readOnlyHint || LIST_TOOLS.has(t.name)) && !props.fields) {
+    props.fields = { type: "array", description: "Return only these top-level fields (plus id keys), narrowing the response further." };
+  }
+  const fp = FILTER_PROPS[t.name];
+  if (fp) {
+    for (const [k, schema] of Object.entries(fp)) if (!props[k]) props[k] = schema;
+    const orig = t.handler;
+    t.handler = (a = {}) => {
+      const argv = orig(a);
+      // project_list_my: GitFlic supports server-side ?q= for project listings.
+      if (t.name === "gitflic_project_list_my" && a.q && !argv.includes("--q")) argv.push("--q", String(a.q));
+      if (needsAll(a) && !argv.includes("--all")) argv.push("--all");
+      return argv;
+    };
+  }
+}
 
 // Build the JSON Schema for ListTools request, just to help debugging.
 export const TOOL_NAMES = TOOLS.map((t) => t.name);

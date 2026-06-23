@@ -11,6 +11,7 @@
     "runner.mjs",
     "tools.mjs",
     "filter.mjs",
+    "slim.mjs",
     "project-resolver.mjs",
     "README.md"
   ],

@@ -23,6 +23,7 @@ import { runGitflic, runGitflicJson, GitflicError } from "./runner.mjs";
 import { TOOLS } from "./tools.mjs";
 import { selectTools } from "./filter.mjs";
 import { resolveProjectArg } from "./project-resolver.mjs";
+import { slimResult } from "./slim.mjs";
 
 const server = new McpServer(
   {
@@ -113,8 +114,12 @@ for (const tool of selected) {
           }
           throw e;
         }
+        // Shape the response for the LLM (issue #1): flatten HAL envelopes,
+        // project per entity, drop noise, mask secrets. Opt out per-call with
+        // `raw:true` or globally with GITFLIC_MCP_RAW=1 / GITFLIC_MCP_OUTPUT=full.
+        const shaped = slimResult(tool.name, result, resolvedArgs, process.env);
         return {
-          content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
+          content: [{ type: "text", text: JSON.stringify(shaped, null, 2) }],
         };
       } catch (err) {
         return {
