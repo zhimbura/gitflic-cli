@@ -1,5 +1,15 @@
 # Changelog
 
+## gitflic-cli 0.3.5 — 2026-06-24 — fix: ещё несколько partial-edit затирали поля
+
+После фикса `issue edit` (0.3.4) — аудит **всех** мутирующих хендлеров на тот же класс (GitFlic PUT заменяет объект целиком, поэтому частичный edit без read-merge стирает не переданные поля). Найдено и починено через read-merge (как `mr edit`/`release edit`):
+
+- **`branch protection edit`** — правка одного поля (напр. `--auto-merge`) затирала `branchTemplate` / `allowedToPush` / `allowedToMerge` / `codeOwnerApprovalRequired`. Теперь читает текущее правило и мёржит. **Проверено вживую** (правка `--auto-merge` сохраняет остальные поля). Выделен `buildProtectionEditBody` + тесты.
+- **`settings oauth edit`** — PUT затирал омитнутые поля OAuth-приложения (`description`/`homepage`/`callback`/`standalone`). Теперь read-merge; `--name` больше не обязателен. `buildOauthEditBody` + тесты.
+- **`registry repo edit`** — то же (Enterprise/Atlas-only): read-merge `title`/`repositoryType`/`packageType`/`description`.
+
+> Под наблюдением (admin/gated, ждут живой проверки эндпоинтов): `saml edit` (нет отдельного `saml get` для merge) и `runner edit` (`POST …/edit` — неясно, мёржит ли сервер сам). Потенциально тот же класс — если подтвердится, починим аналогично.
+
 ## gitflic-cli 0.3.4 — 2026-06-23 — fix: `issue close/edit` затирали заголовок/описание
 
 - **Data-loss fix.** `gitflic issue close` / `reopen` / частичный `edit` слали `title`/`description` как `"stub"`, а GitFlic PUT `/issue/edit` заменяет объект целиком — поэтому закрытие задачи **молча превращало её заголовок и описание в «stub»**. Теперь `edit` сначала читает текущую issue и мёржит изменения (как уже сделано для `release edit` / `mr edit`), сохраняя title/description/исполнителей/лейблы. Выделен чистый билдер `buildIssueEditBody` + unit-тесты. Затрагивало и MCP-тулзы `gitflic_issue_close`/`reopen`/`edit` — фикс подхватится автоматически (зависимость `gitflic-cli-mcp@0.4.0` → `^0.3.3`).
