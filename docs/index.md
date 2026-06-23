@@ -31,7 +31,7 @@ features:
     details: Чистый Node ESM (≥18) на глобальном fetch. Никакого npm install — один бинарь gitflic.
   - icon: 🤖
     title: Дружелюбен к агентам
-    details: --format json + NDJSON streaming + стабильные коды возврата. MCP-сервер с типизированными тулами поверх всего CLI.
+    details: --format json + NDJSON streaming + стабильные коды возврата. MCP-сервер (77 тулзов) поверх всего CLI — со сжатием ответов (~70% экономии токенов).
   - icon: 🔐
     title: Безопасные токены
     details: macOS Keychain / Linux libsecret / chmod 0600 fallback. Multi-account и per-project bindings.
@@ -40,7 +40,7 @@ features:
     details: list/get/versions/files/delete + upload/download для generic, maven, npm, pypi, nuget, composer, opm, cran, rubygem, cargo, conda.
   - icon: ⚙️
     title: Надёжность
-    details: Авто-ретраи на 429/502/503/504, пагинация --all, TUI-браузер MR, 166 self-тестов.
+    details: Авто-ретраи на 429/502/503/504, пагинация --all, TUI-браузер MR, 256 self-тестов.
 ---
 
 ## За 30 секунд

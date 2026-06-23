@@ -2,6 +2,31 @@
 
 Все значимые изменения в `gitflic-cli`. Формат — приближённый к [Keep a Changelog](https://keepachangelog.com/).
 
+## [gitflic-cli-mcp 0.4.1] — 2026-06-24
+
+Багфиксы slim-слоя, найденные при live-прогоне всех 77 тулзов «в бою».
+
+- **`gitflic_user_search`** через slim возвращал пусто — клиентский `q`-фильтр искал только по `title`/`description`, а у юзеров их нет. Haystack расширен (`username`/`fullName`/`name`/`alias`/`tagName`).
+- **Пустой `*_list`** незамапленного тула отдавал сырую обёртку `{page}` вместо `{items:[],total,returned:0}`. Fallback расширен на любой `*_list`/`*_search`.
+
+## [0.3.5] — 2026-06-24
+
+Ещё несколько частичных edit'ов затирали поля (PUT заменяет объект целиком → нужен read-merge):
+
+- **`branch protection edit`** — правка одного поля сохраняет остальные (проверено вживую). Также **`settings oauth edit`** и **`registry repo edit`**.
+- **`mr discuss delete`** — слал `POST` → GitFlic **405**; теперь `DELETE` (проверено вживую). `mr discuss reply`/`resolve`/`delete` работают через CLI (нужен `rootNote.uuid`).
+
+## [0.3.4] — 2026-06-23
+
+- **`issue close` / `reopen` / `edit`** больше не затирают `title`/`description` — раньше `close` молча превращал заголовок в `«stub»` (GitFlic PUT заменяет объект целиком; теперь read-merge).
+
+## [0.3.3] + gitflic-cli-mcp [0.4.0] — 2026-06-23 — сжатие токенов MCP
+
+MCP больше не отдаёт LLM «сырой» JSON GitFlic — на реальных данных **≈70% экономии токенов** (на коммитах/ветках до 84%).
+
+- **MCP: сжатие ответов** — list-обёртка `{_embedded,page}` → `{items,total,matched,returned}`, проекция сущностей, вырезание косметики (avatar/cover/hexColor/`_links`), `status` → enum-скаляр. Два режима: `GITFLIC_MCP_OUTPUT=slim|full` + `GITFLIC_MCP_RAW`. Поканальные `raw:true` / `fields:[…]`. Клиентская фильтрация списков (`label`/`q`/`assignee`/…). Новый approval-тул `gitflic_webhook_reveal_secret`; `secret` вебхука маскируется в `secretSet`. Тулзов: **77**. См. [MCP-сервер → Сжатие ответов](/mcp-server#сжатие-ответов-экономия-токенов).
+- **CLI: fix пагинации `--all`** — пейджер был 1-индексным, а списки GitFlic 0-индексные → терялась первая страница (`issue list --all` отдавал 40 из 60). `user projects`/`followers`/`following` → поддержка `--all`.
+
 ## [0.3.2] + gitflic-cli-mcp [0.3.1] — 2026-06-23
 
 Багфиксы из живого E2E-прогона всех MCP-тулзов. Добавлен `scripts/e2e-live.mjs`.
