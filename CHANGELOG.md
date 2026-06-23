@@ -1,5 +1,9 @@
 # Changelog
 
+## gitflic-cli 0.3.4 — 2026-06-23 — fix: `issue close/edit` затирали заголовок/описание
+
+- **Data-loss fix.** `gitflic issue close` / `reopen` / частичный `edit` слали `title`/`description` как `"stub"`, а GitFlic PUT `/issue/edit` заменяет объект целиком — поэтому закрытие задачи **молча превращало её заголовок и описание в «stub»**. Теперь `edit` сначала читает текущую issue и мёржит изменения (как уже сделано для `release edit` / `mr edit`), сохраняя title/description/исполнителей/лейблы. Выделен чистый билдер `buildIssueEditBody` + unit-тесты. Затрагивало и MCP-тулзы `gitflic_issue_close`/`reopen`/`edit` — фикс подхватится автоматически (зависимость `gitflic-cli-mcp@0.4.0` → `^0.3.3`).
+
 ## gitflic-cli 0.3.3 + gitflic-cli-mcp 0.4.0 — 2026-06-23 — сжатие токенов MCP (issue #1)
 
 Главное: **MCP больше не отдаёт LLM «сырой» JSON GitFlic** — на реальных данных **≈70% экономии токенов** (на коммитах/ветках до 84%).
