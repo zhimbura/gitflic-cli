@@ -1,5 +1,9 @@
 # Changelog
 
+## gitflic-cli 0.3.1 — 2026-06-23
+
+- **Fix `gitflic release create`** — команда не слала поле `preRelease`, без которого GitFlic API падает с **500 NPE** (или **422** при наличии `--description`). Теперь `preRelease` отправляется всегда (по умолчанию `false`, `true` при `--pre-release`). Тот же фикс для `gitflic release edit`: PUT требует полный объект — команда теперь дочитывает текущий релиз и мёржит изменения, не обнуляя `preRelease`/остальные поля. Выделены чистые билдеры `buildCreateBody`/`buildEditBody` + unit-тесты. (Баг нашли при создании GitFlic-релиза для `mcp-v0.3.0` — теперь релиз создаётся самим CLI.)
+
 ## gitflic-cli-mcp 0.3.0 — 2026-06-23
 
 > Релиз только MCP-пакета (`gitflic-cli-mcp`). CLI `gitflic-cli` без изменений — остаётся 0.3.0.

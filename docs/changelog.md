@@ -2,6 +2,10 @@
 
 Все значимые изменения в `gitflic-cli`. Формат — приближённый к [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.3.1] — 2026-06-23
+
+- **Fix `gitflic release create` / `release edit`** — не отправлялось обязательное поле `preRelease`, из-за чего GitFlic API падал с 500/422. Теперь `preRelease` шлётся всегда (default `false`); `edit` дочитывает текущий релиз и мёржит изменения. Добавлены unit-тесты.
+
 ## [gitflic-cli-mcp 0.3.0] — 2026-06-23
 
 > Релиз только MCP-пакета. CLI `gitflic-cli` без изменений (0.3.0).

@@ -3,9 +3,9 @@ class Gitflic < Formula
   homepage "https://cli-gitflic.ru"
   # Points at the immutable npm tarball. Bump `url` + `sha256` on every release
   # (scripts/publish.mjs --bump-formula does this for you after `npm publish`).
-  url "https://registry.npmjs.org/gitflic-cli/-/gitflic-cli-0.3.0.tgz"
+  url "https://registry.npmjs.org/gitflic-cli/-/gitflic-cli-0.3.1.tgz"
   # placeholder — `node scripts/publish.mjs --bump-formula` fills the real hash
-  sha256 "0000000000000000000000000000000000000000000000000000000000000000"
+  sha256 "96e8a2158a801c338d5425d83178b546a0e9968ef1cad4ee0fa63d3d5393103c"
   license "MIT"
 
   depends_on "node"
