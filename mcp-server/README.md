@@ -1,6 +1,6 @@
 # gitflic-cli MCP-сервер
 
-[Model Context Protocol](https://modelcontextprotocol.io/) сервер, оборачивающий CLI `gitflic` и отдающий **77 типизированных тулзов** поверх команд GitFlic REST для AI-агентов (Claude Code, Cursor и т.п.).
+[Model Context Protocol](https://modelcontextprotocol.io/) сервер, оборачивающий CLI `gitflic` и отдающий **76 типизированных тулзов** поверх команд GitFlic REST для AI-агентов (Claude Code, Cursor и т.п.).
 
 ## Что внутри
 
@@ -66,7 +66,7 @@ claude mcp add gitflic --env GITFLIC_TOKEN=xxxxxxxx -- npx -y gitflic-cli-mcp
 
 ## Ограничение набора тулзов (экономия контекста)
 
-Все 77 тулзов уходят хосту по `tools/list` ещё до первого вызова — это ~6K токенов «налога» на контекст модели. Если агенту нужны не все, набор можно сузить через **env-переменные** — прописываются в том же `env`-блоке конфига, где `GITFLIC_TOKEN` (своего конфиг-файла у сервера нет, он читает `process.env` при старте).
+Все 76 тулзов уходят хосту по `tools/list` ещё до первого вызова — это ~6K токенов «налога» на контекст модели. Если агенту нужны не все, набор можно сузить через **env-переменные** — прописываются в том же `env`-блоке конфига, где `GITFLIC_TOKEN` (своего конфиг-файла у сервера нет, он читает `process.env` при старте).
 
 | Переменная | Значение | Что делает |
 |---|---|---|
@@ -76,7 +76,7 @@ claude mcp add gitflic --env GITFLIC_TOKEN=xxxxxxxx -- npx -y gitflic-cli-mcp
 | `GITFLIC_MCP_TOOLS` | список имён тулзов | явный allowlist (имеет приоритет над `GROUPS`) |
 | `GITFLIC_MCP_EXCLUDE` | список имён тулзов | убрать конкретные тулзы (применяется последним) |
 
-Все — опциональные. Без них регистрируются все 77 (как и раньше). Неизвестные группы/имена не валят сервер — он пишет `WARN` в stderr и игнорирует их.
+Все — опциональные. Без них регистрируются все 76 (как и раньше). Неизвестные группы/имена не валят сервер — он пишет `WARN` в stderr и игнорирует их.
 
 **Порядок применения (precedence):**
 
@@ -92,7 +92,7 @@ claude mcp add gitflic --env GITFLIC_TOKEN=xxxxxxxx -- npx -y gitflic-cli-mcp
 | Группа | Тулзов | Read / Write |
 |---|---|---|
 | `auth` | 8 | 3 read / 5 write |
-| `blob` | 3 | 3 read / 0 write |
+| `blob` | 2 | 2 read / 0 write |
 | `branch` | 10 | 5 read / 5 write |
 | `commit` | 4 | 4 read / 0 write |
 | `issue` | 12 | 4 read / 8 write |
@@ -118,14 +118,14 @@ claude mcp add gitflic --env GITFLIC_TOKEN=xxxxxxxx -- npx -y gitflic-cli-mcp
 **Примеры:**
 
 ```bash
-# Только MR и issue (~27 тулзов вместо 77)
+# Только MR и issue (~27 тулзов вместо 76)
 claude mcp add gitflic --env GITFLIC_TOKEN=xxxx \
   --env GITFLIC_MCP_GROUPS=mr,issue -- npx -y gitflic-cli-mcp
 
 # Read-only агент для код-ревью (только тулзы без мутаций)
 GITFLIC_MCP_READONLY=1 npx -y gitflic-cli-mcp
 
-# Может всё, кроме удаления (70 тулзов: создаёт/правит/мёрджит — но не удаляет)
+# Может всё, кроме удаления (69 тулзов: создаёт/правит/мёрджит — но не удаляет)
 GITFLIC_MCP_NO_DESTRUCTIVE=1 npx -y gitflic-cli-mcp
 
 # Точный набор из четырёх тулзов
@@ -153,15 +153,15 @@ GITFLIC_MCP_TOOLS="gitflic_mr_list,gitflic_mr_view,gitflic_mr_diff,gitflic_mr_cr
 
 > Можно поднять один и тот же сервер дважды под разными именами — напр. `gitflic` (полный) и `gitflic-ro` (`GITFLIC_MCP_READONLY=1`) — и держать оба подключёнными. Либо класть конфиг в проектный `.mcp.json` / `.cursor/mcp.json`, чтобы в каждом репозитории грузились свои группы.
 
-## Все 77 тулзов
+## Все 76 тулзов
 
 Полный список по группам. **R** = read-only (`readOnlyHint: true`, не меняет состояние — попадает в `GITFLIC_MCP_READONLY=1`); **W** = write/мутация.
 
 ### `auth` (8)
 `R` `gitflic_auth` · `W` `gitflic_auth_login` · `W` `gitflic_auth_logout` · `R` `gitflic_auth_list` · `W` `gitflic_auth_switch` · `W` `gitflic_auth_bind` · `W` `gitflic_auth_unbind` · `R` `gitflic_auth_bindings`
 
-### `blob` (3)
-`R` `gitflic_blob_get` · `R` `gitflic_blob_files` · `R` `gitflic_blob_archive`
+### `blob` (2)
+`R` `gitflic_blob_get` · `R` `gitflic_blob_files`
 
 ### `branch` (10)
 `R` `gitflic_branch_list` · `W` `gitflic_branch_create` · `W` `gitflic_branch_delete` · `R` `gitflic_branch_get` · `R` `gitflic_branch_default` · `R` `gitflic_branch_protection_list` · `R` `gitflic_branch_protection_get` · `W` `gitflic_branch_protection_create` · `W` `gitflic_branch_protection_edit` · `W` `gitflic_branch_protection_delete`
@@ -190,7 +190,7 @@ GITFLIC_MCP_TOOLS="gitflic_mr_list,gitflic_mr_view,gitflic_mr_diff,gitflic_mr_cr
 ### `webhook` (4)
 `R` `gitflic_webhook_list` · `R` `gitflic_webhook_get` · `W` `gitflic_webhook_create` · `W` `gitflic_webhook_delete`
 
-Итого: **40 read / 37 write**. Каждый тул маппится 1-в-1 на подкоманду CLI (`gitflic …`).
+Итого: **39 read / 37 write**. Каждый тул маппится 1-в-1 на подкоманду CLI (`gitflic …`).
 
 ## Как это работает
 

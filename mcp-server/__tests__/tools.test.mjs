@@ -60,6 +60,34 @@ describe("TOOLS catalog", () => {
   });
 });
 
+describe("live-bug regression guards", () => {
+  const byName = (n) => TOOLS.find((t) => t.name === n);
+
+  it("blob_files maps to `blob recursive` (not the nonexistent `blob files`)", () => {
+    const argv = byName("gitflic_blob_files").handler({ project: "o/a" });
+    expect(argv.slice(0, 2)).toEqual(["blob", "recursive"]);
+    expect(argv).not.toContain("files");
+  });
+
+  it("blob_archive was removed (no repo-tarball backing on SaaS)", () => {
+    expect(byName("gitflic_blob_archive")).toBeUndefined();
+    for (const t of TOOLS) {
+      const argv = t.handler(Object.fromEntries((t.inputSchema.required || []).map((k) => [k, "x"])));
+      if (argv[0] === "blob") expect(["get", "recursive", "download", "file-size"]).toContain(argv[1]);
+    }
+  });
+
+  it("mr_create requires a description (GitFlic 422s on empty)", () => {
+    expect(byName("gitflic_mr_create").inputSchema.required).toContain("description");
+  });
+
+  it("project_edit no longer advertises visibility/default-branch (405 over REST)", () => {
+    const props = Object.keys(byName("gitflic_project_edit").inputSchema.properties);
+    expect(props).not.toContain("isPrivate");
+    expect(props).not.toContain("defaultBranch");
+  });
+});
+
 describe("annotations integrity", () => {
   it("read-only tools are never marked destructive", () => {
     for (const t of TOOLS) {

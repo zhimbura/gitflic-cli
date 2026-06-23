@@ -2,6 +2,17 @@
 
 Все значимые изменения в `gitflic-cli`. Формат — приближённый к [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.3.2] + gitflic-cli-mcp [0.3.1] — 2026-06-23
+
+Багфиксы из живого E2E-прогона всех MCP-тулзов. Добавлен `scripts/e2e-live.mjs`.
+
+- **CLI `project edit`** — `PUT /project` (405) → теперь `…/setting/change-setting` (title/description/language).
+- **CLI `mr create`** — требует непустой `--description` (иначе GitFlic 422).
+- **CLI `blob get`/`recursive`/`download`** — работают без `--commit` (по `--branch` или дефолтной ветке).
+- **MCP `gitflic_blob_files`** → `blob recursive` (звал несуществующую `blob files`).
+- **MCP `gitflic_blob_archive`** — удалён (нет репо-тарбола в REST). Тулзов: 76.
+- **MCP `gitflic_mr_create`** — `description` обязателен; **`gitflic_project_edit`** — убраны visibility/default-branch.
+
 ## [0.3.1] — 2026-06-23
 
 - **Fix `gitflic release create` / `release edit`** — не отправлялось обязательное поле `preRelease`, из-за чего GitFlic API падал с 500/422. Теперь `preRelease` шлётся всегда (default `false`); `edit` дочитывает текущий релиз и мёржит изменения. Добавлены unit-тесты.

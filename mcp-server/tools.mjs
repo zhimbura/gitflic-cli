@@ -242,10 +242,10 @@ export const TOOLS = [
   {
     name: "gitflic_mr_create",
     description:
-      "Create a new merge request. If --from is omitted, uses current git branch. If --to is omitted, uses project default branch.",
+      "Create a new merge request. `description` is required (GitFlic rejects empty MR descriptions). If `from` is omitted, uses current git branch; if `to` is omitted, uses project default branch.",
     inputSchema: {
       type: "object",
-      required: ["project", "title"],
+      required: ["project", "title", "description"],
       properties: {
         project: { type: "string" },
         title: { type: "string" },
@@ -1430,7 +1430,7 @@ export const TOOLS = [
   },
   {
     name: "gitflic_project_edit",
-    description: "Edit project metadata (title, description, default branch, visibility).",
+    description: "Edit project title, description, or language (via change-setting). Visibility and default branch are not editable over the REST API.",
     inputSchema: {
       type: "object",
       required: ["project"],
@@ -1438,18 +1438,14 @@ export const TOOLS = [
         project: { type: "string" },
         title: { type: "string" },
         description: { type: "string" },
-        isPrivate: { type: "boolean" },
         language: { type: "string" },
-        defaultBranch: { type: "string" },
       },
     },
     handler: (a) => {
       const args = ["project", "edit", a.project, "--format", "json"];
       if (a.title) args.push("--title", a.title);
       if (a.description !== undefined) args.push("--description", a.description);
-      if (a.isPrivate !== undefined) args.push(a.isPrivate ? "--private" : "--public");
       if (a.language) args.push("--language", a.language);
-      if (a.defaultBranch) args.push("--default-branch", a.defaultBranch);
       return args;
     },
     annotations: {
@@ -1540,30 +1536,13 @@ export const TOOLS = [
       },
     },
     handler: (a) => {
-      const args = ["blob", "files", "--project", a.project, "--format", "json"];
-      if (a.path) args.push("--path", a.path);
+      const args = ["blob", "recursive", "--project", a.project, "--format", "json"];
+      if (a.path) args.push("--directory", a.path);
       if (a.branch) args.push("--branch", a.branch);
       return args;
     },
     annotations: {
       title: "Blob Files",
-      readOnlyHint: true,
-      destructiveHint: false,
-      idempotentHint: false,
-      openWorldHint: true,
-    },
-  },
-  {
-    name: "gitflic_blob_archive",
-    description: "Download a repo archive (tarball). Returns JSON metadata; use shell to stream the body.",
-    inputSchema: {
-      type: "object",
-      required: ["project", "branch"],
-      properties: { project: { type: "string" }, branch: { type: "string" } },
-    },
-    handler: (a) => ["blob", "archive", a.branch, "--project", a.project, "--format", "json"],
-    annotations: {
-      title: "Blob Archive",
       readOnlyHint: true,
       destructiveHint: false,
       idempotentHint: false,

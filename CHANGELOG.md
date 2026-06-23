@@ -1,5 +1,21 @@
 # Changelog
 
+## gitflic-cli 0.3.2 + gitflic-cli-mcp 0.3.1 — 2026-06-23
+
+Багфиксы, найденные **живым E2E-прогоном всех MCP-тулзов** против GitFlic (раньше API-команды не были покрыты автотестами). Добавлен переиспользуемый live-харнес `scripts/e2e-live.mjs`.
+
+**CLI `gitflic` 0.3.2:**
+- **`project edit`** — `PUT /project` отдавал **405**; теперь редактирование title/description/language идёт через рабочий эндпоинт `…/setting/change-setting`. Visibility и default-branch не редактируются по REST — команда честно сообщает об этом, а не молча игнорит.
+- **`mr create`** — требует непустой `--description` (GitFlic отклоняет пустое описание с 422 `error.field.empty`); раньше слался `""` → криптовый 422.
+- **`blob get` / `recursive` / `download`** — больше не требуют `--commit`: принимают `--branch` или по умолчанию берут дефолтную ветку (резолв через `…/branch?name=`).
+
+**MCP `gitflic-cli-mcp` 0.3.1:**
+- **`gitflic_blob_files`** — звал несуществующую подкоманду `blob files`; теперь `blob recursive`.
+- **`gitflic_blob_archive`** — удалён: репо-тарбола в GitFlic REST на SaaS нет (`blob download` — это один файл).
+- **`gitflic_mr_create`** — `description` добавлен в `required`.
+- **`gitflic_project_edit`** — убраны неработающие `isPrivate`/`defaultBranch`; остаются title/description/language.
+- Итого тулзов: **76** (было 77).
+
 ## gitflic-cli 0.3.1 — 2026-06-23
 
 - **Fix `gitflic release create`** — команда не слала поле `preRelease`, без которого GitFlic API падает с **500 NPE** (или **422** при наличии `--description`). Теперь `preRelease` отправляется всегда (по умолчанию `false`, `true` при `--pre-release`). Тот же фикс для `gitflic release edit`: PUT требует полный объект — команда теперь дочитывает текущий релиз и мёржит изменения, не обнуляя `preRelease`/остальные поля. Выделены чистые билдеры `buildCreateBody`/`buildEditBody` + unit-тесты. (Баг нашли при создании GitFlic-релиза для `mcp-v0.3.0` — теперь релиз создаётся самим CLI.)
