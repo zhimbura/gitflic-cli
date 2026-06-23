@@ -15,6 +15,9 @@
 - **`settings oauth edit`** — PUT затирал омитнутые поля OAuth-приложения (`description`/`homepage`/`callback`/`standalone`). Теперь read-merge; `--name` больше не обязателен. `buildOauthEditBody` + тесты.
 - **`registry repo edit`** — то же (Enterprise/Atlas-only): read-merge `title`/`repositoryType`/`packageType`/`description`.
 
+Плюс из живого прогона оставшихся тулзов:
+- **`mr discuss delete`** — слал `POST …/discussions/delete/{uuid}`, GitFlic отвечал **405 Method Not Allowed**; теперь `DELETE` (проверено вживую: тред 1→0). Заодно подтвердилось, что `mr discuss reply`/`resolve`/`delete` **рабочие через CLI** — нужен `rootNote.uuid` из `discuss list` (а не верхнеуровневый `discussionUuid:null`), поэтому в прошлых прогонах их ошибочно скипали как «нет треда».
+
 > Под наблюдением (admin/gated, ждут живой проверки эндпоинтов): `saml edit` (нет отдельного `saml get` для merge) и `runner edit` (`POST …/edit` — неясно, мёржит ли сервер сам). Потенциально тот же класс — если подтвердится, починим аналогично.
 
 ## gitflic-cli 0.3.4 — 2026-06-23 — fix: `issue close/edit` затирали заголовок/описание
