@@ -44,14 +44,17 @@ const READONLY_SUFFIXES = [
   "completion_fish",
   "_repos",
   "_jobs",
-  "_by-commit",
+  "_by_commit",        // gitflic_mr_by_commit — pure lookup
+  "_list_my",          // gitflic_project_list_my — pure read
   "_archive",          // reading project archive to stdout
   "_archive_",         // any future archive variants
   "_attachments_",     // NOT (we don't have this)
   "_relations_list",
   "_rules_list",       // alias/branch/tag/environment protection list variants
   "_revoke_",
-  "_resolve",
+  // NOTE: "_resolve" is intentionally NOT here. gitflic_project_resolve (a
+  // pure read) is special-cased below; gitflic_mr_discuss_resolve actually
+  // WRITES (resolves a thread), so a blanket "_resolve" suffix mislabels it.
 ];
 
 // Tools whose name ENDS WITH one of these are idempotent (safe to retry).

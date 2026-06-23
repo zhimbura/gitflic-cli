@@ -60,6 +60,28 @@ describe("TOOLS catalog", () => {
   });
 });
 
+describe("annotations integrity", () => {
+  it("read-only tools are never marked destructive", () => {
+    for (const t of TOOLS) {
+      if (t.annotations?.readOnlyHint === true) {
+        expect(t.annotations.destructiveHint).toBe(false);
+      }
+    }
+  });
+
+  it("pure-read lookups are flagged read-only (regression guard)", () => {
+    // These two were historically mislabeled as destructive — see the
+    // classifier hyphen/underscore + suffix bug. Keep them honest.
+    const mustBeReadOnly = ["gitflic_project_list_my", "gitflic_mr_by_commit"];
+    for (const name of mustBeReadOnly) {
+      const t = TOOLS.find((x) => x.name === name);
+      expect(t, name).toBeDefined();
+      expect(t.annotations.readOnlyHint, name).toBe(true);
+      expect(t.annotations.destructiveHint, name).toBe(false);
+    }
+  });
+});
+
 describe("key tools exist", () => {
   it("has high-value tools we want to keep", () => {
     const want = [

@@ -1,5 +1,12 @@
 # Changelog
 
+## gitflic-cli-mcp 0.2.0 — 2026-06-23
+
+> Релиз только MCP-пакета (`gitflic-cli-mcp`). CLI `gitflic-cli` без изменений — остаётся 0.3.0.
+
+- **Фильтрация набора тулзов** для экономии контекста модели (все 77 тулзов = ~6K токенов «налога» ещё до первого вызова). Через env: `GITFLIC_MCP_GROUPS` (по группам: `mr,issue` и т.п.), `GITFLIC_MCP_READONLY=1` (только read-only), `GITFLIC_MCP_TOOLS` (точный allowlist), `GITFLIC_MCP_EXCLUDE` (denylist). По умолчанию — все 77 (поведение не изменилось). Логика в `mcp-server/filter.mjs`, покрыта тестами.
+- **Fix MCP-аннотаций** (влияет на `READONLY`-режим и confirm-prompt'ы хоста): `gitflic_project_list_my` и `gitflic_mr_by_commit` теперь `readOnlyHint:true` (были помечены как мутирующие — лишний prompt + не попадали в read-only набор); `gitflic_mr_discuss_resolve` теперь `readOnlyHint:false` (resolve меняет состояние треда — раньше ошибочно числился read-only). Итог: **40 read / 37 write**. Соответствующий fix в классификаторе `scripts/annotate-mcp-tools.mjs`.
+
 ## 0.3.0 — 2026-06-23 — полное покрытие REST API (100%)
 
 - **100% покрытие публичного REST API GitFlic** (все 20 разделов, ≈199 эндпоинтов со scope-вариантами). Каждый раздел доведён до полноты; см. таблицу в README/`docs/api-coverage.md`. Бо́льшая часть протестирована вживую против `api.gitflic.ru` на тестовом репозитории `tikhon/cli-e2e-test` (62/62 проверки green).

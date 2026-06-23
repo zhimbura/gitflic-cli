@@ -420,8 +420,8 @@ export const TOOLS = [
     handler: (a) => ["mr", "discuss", "resolve", a.id, a.discussionUuid, "--project", a.project, "--format", "json"],
     annotations: {
       title: "Mr Discuss Resolve",
-      readOnlyHint: true,
-      destructiveHint: false,
+      readOnlyHint: false,
+      destructiveHint: true,
       idempotentHint: true,
       openWorldHint: true,
     },
@@ -751,8 +751,8 @@ export const TOOLS = [
     handler: () => ["project", "list", "--scope", "my"],
     annotations: {
       title: "Project List My",
-      readOnlyHint: false,
-      destructiveHint: true,
+      readOnlyHint: true,
+      destructiveHint: false,
       idempotentHint: false,
       openWorldHint: true,
     },
@@ -859,8 +859,8 @@ export const TOOLS = [
     },
     annotations: {
       title: "Mr By Commit",
-      readOnlyHint: false,
-      destructiveHint: true,
+      readOnlyHint: true,
+      destructiveHint: false,
       idempotentHint: false,
       openWorldHint: true,
     },

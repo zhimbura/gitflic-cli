@@ -21,6 +21,7 @@ import { z } from "zod";
 
 import { runGitflic, runGitflicJson, GitflicError } from "./runner.mjs";
 import { TOOLS } from "./tools.mjs";
+import { selectTools } from "./filter.mjs";
 import { resolveProjectArg } from "./project-resolver.mjs";
 
 const server = new McpServer(
@@ -66,8 +67,15 @@ function jsonSchemaToZod(schema) {
   return z.object(props);
 }
 
-// Register each tool from TOOLS.
-for (const tool of TOOLS) {
+// Optionally scope the tool set via env (GITFLIC_MCP_GROUPS / _READONLY /
+// _TOOLS / _EXCLUDE) to keep the model's context small. Default: all tools.
+const { selected, warnings } = selectTools(TOOLS, process.env);
+for (const w of warnings) {
+  process.stderr.write(`[gitflic-mcp] WARN: ${w}\n`);
+}
+
+// Register each selected tool.
+for (const tool of selected) {
   const zodInput = jsonSchemaToZod(tool.inputSchema);
   // Per MCP 2025-06-18 spec, server.tool() in @modelcontextprotocol/sdk@1.x
   // takes annotations as the 5th positional arg. Clients like Claude Code
@@ -124,5 +132,5 @@ await server.connect(transport);
 
 // Announce to stderr (stdout is reserved for JSON-RPC).
 process.stderr.write(
-  `[gitflic-mcp] started; registered ${TOOLS.length} tools. GITFLIC_TOKEN=${process.env.GITFLIC_TOKEN ? "set" : "MISSING"}\n`,
+  `[gitflic-mcp] started; registered ${selected.length}/${TOOLS.length} tools. GITFLIC_TOKEN=${process.env.GITFLIC_TOKEN ? "set" : "MISSING"}\n`,
 );

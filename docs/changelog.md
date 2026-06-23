@@ -2,6 +2,15 @@
 
 Все значимые изменения в `gitflic-cli`. Формат — приближённый к [Keep a Changelog](https://keepachangelog.com/).
 
+## [gitflic-cli-mcp 0.2.0] — 2026-06-23
+
+> Релиз только MCP-пакета. CLI `gitflic-cli` без изменений (0.3.0).
+
+### MCP-сервер (`gitflic-cli-mcp`)
+
+- **Фильтрация набора тулзов** для экономии контекста модели. Через env-переменные: `GITFLIC_MCP_GROUPS` (по группам, напр. `mr,issue`), `GITFLIC_MCP_READONLY=1` (только read-only), `GITFLIC_MCP_TOOLS` (allowlist), `GITFLIC_MCP_EXCLUDE` (denylist). По умолчанию регистрируются все 77 тулзов. См. [MCP-сервер → Ограничение набора тулзов](/mcp-server#ограничение-набора-тулзов-экономия-контекста).
+- **Fix MCP-аннотаций:** `gitflic_project_list_my` и `gitflic_mr_by_commit` помечены read-only; `gitflic_mr_discuss_resolve` помечен write. Итог: 40 read / 37 write.
+
 ## [0.3.0] — 2026-06-23
 
 100% покрытие публичного REST API GitFlic — все 20 разделов (≈199 эндпоинтов со scope-вариантами). Бо́льшая часть протестирована вживую против `api.gitflic.ru` (62/62 проверки green). Подробности — в [api-coverage.md](api-coverage.md).
