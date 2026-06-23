@@ -3,10 +3,16 @@
   "version": "0.3.0",
   "description": "Lightweight zero-dependency CLI for the full GitFlic REST API (gitflic.ru) — 100% endpoint coverage.",
   "type": "module",
-  "private": true,
   "bin": {
-    "gitflic": "bin/gitflic"
+    "gitflic": "lib/gitflic.mjs"
   },
+  "files": [
+    "lib/**/*.mjs",
+    "!**/__tests__/**",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
   "engines": {
     "node": ">=18.0.0"
   },
@@ -20,9 +26,36 @@
     "docs:publish": "node scripts/publish-docs.mjs",
     "build": "node scripts/build.mjs",
     "release": "node scripts/release.mjs",
-    "lint": "node scripts/build.mjs --no-test --no-bundle"
+    "lint": "node scripts/build.mjs --no-test --no-bundle",
+    "prepublishOnly": "node scripts/build.mjs --no-bundle",
+    "publish:dry": "node scripts/publish.mjs --dry-run",
+    "publish:npm": "node scripts/publish.mjs"
   },
+  "keywords": [
+    "gitflic",
+    "gitflic-cli",
+    "cli",
+    "rest-api",
+    "git",
+    "merge-request",
+    "devops",
+    "ci-cd",
+    "mcp",
+    "model-context-protocol"
+  ],
+  "homepage": "https://cli-gitflic.ru",
+  "repository": {
+    "type": "git",
+    "url": "git+https://gitflic.ru/tikhon/gitflic-cli.git"
+  },
+  "bugs": {
+    "url": "https://cli-gitflic.ru/known-issues.html"
+  },
+  "author": "Tikhon Ustinov",
   "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
   "devDependencies": {
     "vitepress": "^1.6.4",
     "vitest": "^4.1.9"

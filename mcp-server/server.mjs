@@ -1,15 +1,18 @@
+#!/usr/bin/env node
 // gitflic MCP server — exposes the gitflic CLI as typed MCP tools.
 // Stdio transport; no HTTP. For Claude Code / Cursor / any MCP host.
 //
-// Usage:
-//   cd mcp-server && npm install
-//   export GITFLIC_TOKEN="..." 
-//   node server.mjs
+// Usage (no install — via npx):
+//   GITFLIC_TOKEN="..." npx -y gitflic-cli-mcp
 //
-// Then register with your MCP host, e.g. for Claude Code add to
-// ~/.claude/mcp_servers.json:
-//   { "mcpServers": { "gitflic": { "command": "node",
-//                                   "args": ["/path/to/gitflic-cli/mcp-server/server.mjs"],
+// Or from a source checkout:
+//   cd mcp-server && npm install && GITFLIC_TOKEN="..." node server.mjs
+//
+// Then register with your MCP host, e.g. for Claude Code:
+//   claude mcp add gitflic --env GITFLIC_TOKEN=... -- npx -y gitflic-cli-mcp
+// or add to ~/.claude.json:
+//   { "mcpServers": { "gitflic": { "command": "npx",
+//                                   "args": ["-y", "gitflic-cli-mcp"],
 //                                   "env": { "GITFLIC_TOKEN": "..." } } } }
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";

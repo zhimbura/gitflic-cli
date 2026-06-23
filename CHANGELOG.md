@@ -20,6 +20,7 @@
 - **BUG-001 fixed:** `mr diff` теперь декодирует HTML-entities (`&quot;`/`&lt;`/`&gt;`/`&amp;`) через `htmlUnescape()` — диффы читаемы; покрыто тестами.
 - **release-list bug-fix:** `/release` вместо `/release/list` (404).
 - Тесты: 166 unit-тестов (добавлены тесты `htmlUnescape`).
+- **Дистрибуция в npm:** опубликованы `gitflic-cli` (`npm i -g gitflic-cli` / `npx gitflic-cli`) и `gitflic-cli-mcp` (MCP-сервер через `npx -y gitflic-cli-mcp`; зависит от `gitflic-cli`). `mcp-server/runner.mjs` теперь запускает CLI как `node <resolved gitflic-cli>` вместо bash-шима — работает при отдельной установке и на Windows. Добавлены Homebrew-формула (`packaging/homebrew/`, tap — скоро) и `scripts/publish.mjs` (dry-run / bump-formula / publish).
 
 ## 0.2.0 — 2026-06-23 (вышло вместе с 0.3.0; отдельного тега нет)
 

@@ -8,7 +8,7 @@
 mcp-server/
 ├── server.mjs              # MCP stdio сервер
 ├── tools.mjs               # описания тулзов (имя, описание, JSON-схема)
-├── runner.mjs              # child_process-обёртка над bin/gitflic
+├── runner.mjs              # child_process-обёртка: node <gitflic CLI> <args>
 ├── project-resolver.mjs    # авто-резолв project из git remote
 └── __tests__/              # vitest
 ```
@@ -17,13 +17,18 @@ mcp-server/
 
 ## Установка и запуск
 
+Сервер опубликован в npm как `gitflic-cli-mcp` и запускается через `npx` — ставить ничего не нужно:
+
 ```bash
-cd mcp-server
-npm install
-# Один раз — нужна зависимость @modelcontextprotocol/sdk (≈2MB)
+GITFLIC_TOKEN="xxxx" npx -y gitflic-cli-mcp
 ```
 
-CLI `gitflic` сам по себе не требует npm-зависимостей, но MCP-сервер использует `@modelcontextprotocol/sdk` (~единственная dev-зависимость mcp-server).
+`npx` сам подтянет `gitflic-cli-mcp` и его зависимости (`@modelcontextprotocol/sdk`, `zod`) и сам CLI `gitflic-cli`. Из исходников — то же самое вручную:
+
+```bash
+cd mcp-server && npm install
+GITFLIC_TOKEN="xxxx" node server.mjs
+```
 
 ## Настройка токена
 
@@ -33,20 +38,26 @@ MCP-сервер наследует `GITFLIC_TOKEN` от родительско�
 export GITFLIC_TOKEN="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
 ```
 
-Если токен лежит в OS keychain (через `gitflic auth login`), MCP-сервер тоже его увидит — он запускает `bin/gitflic` как subprocess, а тот умеет резолвить из keychain.
+Если токен лежит в OS keychain (через `gitflic auth login`), MCP-сервер тоже его увидит — он запускает `gitflic` CLI как subprocess, а тот умеет резолвить из keychain.
 
 ## Конфигурация в Claude Code / Cursor
 
 ### Claude Code
 
-В `~/.claude.json` (или через UI):
+Одной командой:
+
+```bash
+claude mcp add gitflic --env GITFLIC_TOKEN=xxxxxxxx -- npx -y gitflic-cli-mcp
+```
+
+Или вручную в `~/.claude.json`:
 
 ```json
 {
   "mcpServers": {
     "gitflic": {
-      "command": "node",
-      "args": ["/path/to/gitflic-cli/mcp-server/server.mjs"],
+      "command": "npx",
+      "args": ["-y", "gitflic-cli-mcp"],
       "env": {
         "GITFLIC_TOKEN": "xxxxxxxx"
       }
@@ -63,12 +74,17 @@ export GITFLIC_TOKEN="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
 {
   "mcpServers": {
     "gitflic": {
-      "command": "node",
-      "args": ["/path/to/gitflic-cli/mcp-server/server.mjs"]
+      "command": "npx",
+      "args": ["-y", "gitflic-cli-mcp"],
+      "env": {
+        "GITFLIC_TOKEN": "xxxxxxxx"
+      }
     }
   }
 }
 ```
+
+> Из исходников вместо `npx -y gitflic-cli-mcp` укажи `"command": "node", "args": ["/path/to/gitflic-cli/mcp-server/server.mjs"]`.
 
 ## Примеры использования (в Claude Code)
 

@@ -2,11 +2,38 @@
 
 ## Требования
 
-- **Node.js 18+** (используется глобальный `fetch`, нет npm-зависимостей).
-- SSH-ключ, добавленный в https://gitflic.ru (для SSH-варианта установки).
-- Для HTTPS-варианта — личный API-токен, переданный через `GITFLIC_TOKEN`.
+- **Node.js 18+** (используется глобальный `fetch`, нет runtime-зависимостей).
 
-## Быстрая установка (SSH, рекомендуется)
+## npm (рекомендуется)
+
+```bash
+npm install -g gitflic-cli
+gitflic help
+```
+
+У CLI нет транзитивных зависимостей — `npm i -g` ставит только сам пакет.
+Обновление: `npm update -g gitflic-cli`. Удаление: `npm uninstall -g gitflic-cli`.
+
+### Без установки — npx
+
+```bash
+npx gitflic-cli help
+npx gitflic-cli mr list --project owner/repo
+```
+
+## Homebrew (macOS / Linux) — скоро
+
+Формула готова, tap ещё не опубликован. Когда появится, установка будет такой:
+
+```bash
+brew install zhimbura/tap/gitflic
+```
+
+А пока используй **npm** (выше) или установку из исходников (ниже).
+
+## Из исходников (SSH-клон + install.sh)
+
+Подходит, если хочешь хакать CLI локально. Нужен SSH-ключ в https://gitflic.ru.
 
 ```bash
 git clone git@gitflic.ru:tikhon/gitflic-cli.git ~/tools/gitflic-cli

@@ -46,15 +46,14 @@ features:
 ## За 30 секунд
 
 ```bash
-git clone git@gitflic.ru:tikhon/gitflic-cli.git ~/tools/gitflic-cli
-cd ~/tools/gitflic-cli && bash install.sh
+npm install -g gitflic-cli                       # или разово: npx gitflic-cli help
 
 gitflic auth login --token xxxx-xxxx-xxxx       # валидирует через /user/me, кладёт в Keychain
 gitflic mr list --project tikhon/gitflic-cli    # список MR
 gitflic mr create --title "Fix login" --to main
 ```
 
-Никакого `npm install` — чистый Node ESM (`>=18`), один бинарь `gitflic`.
+Ноль транзитивных зависимостей — чистый Node ESM (`>=18`), один бинарь `gitflic`. [Другие способы установки →](/install.html)
 
 ## Архитектура
 

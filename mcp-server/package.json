@@ -1,20 +1,50 @@
 {
   "name": "gitflic-cli-mcp",
   "version": "0.1.0",
-  "description": "MCP server wrapping gitflic CLI — exposes GitFlic REST API as typed tools for AI agents (Claude Code, Cursor, etc.)",
+  "description": "MCP server wrapping the gitflic CLI — exposes the GitFlic REST API as typed tools for AI agents (Claude Code, Cursor, etc.)",
   "type": "module",
-  "private": true,
   "bin": {
     "gitflic-mcp": "server.mjs"
   },
+  "files": [
+    "server.mjs",
+    "runner.mjs",
+    "tools.mjs",
+    "project-resolver.mjs",
+    "README.md"
+  ],
   "engines": {
     "node": ">=18.0.0"
   },
   "scripts": {
     "start": "node server.mjs"
   },
+  "keywords": [
+    "gitflic",
+    "mcp",
+    "model-context-protocol",
+    "ai-agent",
+    "claude",
+    "cursor",
+    "rest-api"
+  ],
+  "homepage": "https://cli-gitflic.ru/mcp-server.html",
+  "repository": {
+    "type": "git",
+    "url": "git+https://gitflic.ru/tikhon/gitflic-cli.git",
+    "directory": "mcp-server"
+  },
+  "bugs": {
+    "url": "https://cli-gitflic.ru/known-issues.html"
+  },
+  "author": "Tikhon Ustinov",
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0",
+    "gitflic-cli": "^0.3.0",
     "zod": "^3.25.76"
   }
 }

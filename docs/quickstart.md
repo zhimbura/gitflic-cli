@@ -9,12 +9,12 @@ description: "Быстрый старт gitflic-cli — установка CLI �
 ## 1. Установить
 
 ```bash
-git clone git@gitflic.ru:tikhon/gitflic-cli.git ~/tools/gitflic-cli
-cd ~/tools/gitflic-cli
-bash install.sh
+npm install -g gitflic-cli
+# или разово, без установки:
+npx gitflic-cli help
 ```
 
-Подробности про все опции (Windows, custom prefix, dry-run) — [Установка](install.md).
+Все способы (npx, из исходников, Windows, dry-run) — [Установка](install.md).
 
 ## 2. Получить токен
 

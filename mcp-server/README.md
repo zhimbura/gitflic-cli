@@ -1,24 +1,32 @@
 # gitflic-cli MCP-сервер
 
-[Model Context Protocol](https://modelcontextprotocol.io/) сервер, оборачивающий CLI `gitflic` и отдающий ~30 эндпоинтов GitFlic REST как **типизированные тулзы** для AI-агентов (Claude Code, Cursor и т.п.).
+[Model Context Protocol](https://modelcontextprotocol.io/) сервер, оборачивающий CLI `gitflic` и отдающий **77 типизированных тулзов** поверх команд GitFlic REST для AI-агентов (Claude Code, Cursor и т.п.).
 
 ## Что внутри
 
 - `server.mjs` — MCP-сервер на stdio, регистрирует все тулзы, диспетчеризует в CLI.
 - `tools.mjs` — описания тулзов (имя, описание, JSON-схема, билдер аргументов CLI).
-- `runner.mjs` — обёртка над `child_process`, спавнит `../bin/gitflic` и парсит JSON.
-- `package.json` — единственная зависимость `@modelcontextprotocol/sdk`.
+- `runner.mjs` — обёртка над `child_process`, запускает `gitflic` CLI (`node …/lib/gitflic.mjs`) и парсит JSON.
+- зависимости: `@modelcontextprotocol/sdk`, `zod` и сам `gitflic-cli` (CLI).
 
 MCP-сервер — это **тонкая прослойка**: каждая тулза маппится 1-в-1 на подкоманду CLI. Всё, что можно сделать через `gitflic …`, доступно и из MCP-хоста.
 
 ## Установка
 
+Ставить ничего не нужно — запуск через `npx`:
+
 ```bash
-cd mcp-server
-npm install
+GITFLIC_TOKEN="xxxx" npx -y gitflic-cli-mcp
 ```
 
-Требуется Node 18+ и собранный бинарник `gitflic` по пути `../bin/gitflic` (родительский проект собирает его при первом запуске — отдельный шаг сборки не нужен, это чистый ESM).
+`npx` подтянет пакет, его зависимости и сам CLI `gitflic-cli`. Из исходников — вручную:
+
+```bash
+cd mcp-server && npm install
+GITFLIC_TOKEN="xxxx" node server.mjs
+```
+
+Требуется Node 18+.
 
 ## Настройка токена
 
@@ -32,14 +40,20 @@ export GITFLIC_TOKEN="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
 
 ## Регистрация в MCP-хосте
 
-### Claude Code (`~/.claude/mcp_servers.json`)
+### Claude Code
+
+```bash
+claude mcp add gitflic --env GITFLIC_TOKEN=xxxxxxxx -- npx -y gitflic-cli-mcp
+```
+
+Или вручную в `~/.claude.json`:
 
 ```json
 {
   "mcpServers": {
     "gitflic": {
-      "command": "node",
-      "args": ["/absolute/path/to/gitflic-cli/mcp-server/server.mjs"],
+      "command": "npx",
+      "args": ["-y", "gitflic-cli-mcp"],
       "env": { "GITFLIC_TOKEN": "xxxxxxxx" }
     }
   }
@@ -48,9 +62,11 @@ export GITFLIC_TOKEN="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
 
 ### Cursor (`~/.cursor/mcp.json`)
 
-Та же структура. Перезапустите хост.
+Та же структура. Перезапустите хост. (Из исходников: `"command": "node", "args": ["/absolute/path/to/gitflic-cli/mcp-server/server.mjs"]`.)
 
-## Тулзы (30)
+## Тулзы (77) — основные
+
+Ниже — выборка; полный список из 77 тулзов хост получает по `tools/list`.
 
 | Тулз | Маппится на |
 |---|---|
@@ -71,7 +87,7 @@ export GITFLIC_TOKEN="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
 | `gitflic_webhook_list` | `gitflic webhook list` |
 | `gitflic_branch_protection_list` | `gitflic branch protection list` |
 
-Что не выставлено здесь — всё равно доступно через `gitflic …` напрямую: агенты могут дёргать шелл, если нужен менее ходовой эндпоинт.
+Эта таблица — лишь самые ходовые тулзы. Всего их 77 (каждая команда CLI имеет свой тул); что не попало в таблицу — всё равно доступно как MCP-тул или через `gitflic …` напрямую.
 
 ## Как это работает
 
@@ -82,7 +98,7 @@ export GITFLIC_TOKEN="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
   mcp-server/server.mjs
         │   тулз-вызов после zod-валидации
         ▼
-  mcp-server/runner.mjs   ── spawn ──►  ../bin/gitflic mr create --title "…" --format json
+  mcp-server/runner.mjs   ── spawn ──►  node …/gitflic-cli/lib/gitflic.mjs mr create --title "…" --format json
         │
         ▼
   распарсенный JSON-ответ

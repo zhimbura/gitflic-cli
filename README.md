@@ -7,8 +7,8 @@
 **Полный консольный клиент для REST API [GitFlic](https://gitflic.ru).**
 100% покрытие · ноль внешних зависимостей · MCP-сервер для AI-агентов.
 
+[![npm](https://img.shields.io/npm/v/gitflic-cli?style=flat-square&color=cb3837&logo=npm&logoColor=white)](https://www.npmjs.com/package/gitflic-cli)
 [![docs](https://img.shields.io/badge/docs-cli--gitflic.ru-e8423a?style=flat-square)](https://cli-gitflic.ru)
-[![version](https://img.shields.io/badge/version-0.3.0-e8423a?style=flat-square)](https://cli-gitflic.ru/changelog.html)
 [![node](https://img.shields.io/badge/node-%E2%89%A518-339933?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org)
 [![dependencies](https://img.shields.io/badge/dependencies-0-success?style=flat-square)](#-почему)
 [![tests](https://img.shields.io/badge/tests-166%20passing-brightgreen?style=flat-square)](#-разработка)
@@ -36,20 +36,26 @@
 
 ## 📦 Установка
 
-Требуется Node 18+ и SSH-ключ в [gitflic.ru](https://gitflic.ru).
+Требуется Node 18+.
 
 ```bash
-git clone git@gitflic.ru:tikhon/gitflic-cli.git ~/tools/gitflic-cli
-cd ~/tools/gitflic-cli
-bash install.sh
+# npm (рекомендуется) — ноль транзитивных зависимостей
+npm install -g gitflic-cli
+
+# или разово, без установки
+npx gitflic-cli help
 ```
 
-`install.sh` ставит CLI в `~/.local/share/gitflic-cli`, делает symlink `~/.local/bin/gitflic` и подсказывает про PATH. Готовые tar.gz — на [странице загрузок](https://cli-gitflic.ru/downloads/).
+> 🍺 **Homebrew** — готовится (tap скоро). А пока — npm выше или из исходников ниже.
 
 <details>
-<summary>Альтернативы (Windows, кастомный путь, ручная установка)</summary>
+<summary>Из исходников (git clone + install.sh) и другие альтернативы</summary>
 
 ```bash
+# SSH-клон + установщик (кладёт CLI в ~/.local/share, symlink в ~/.local/bin)
+git clone git@gitflic.ru:tikhon/gitflic-cli.git ~/tools/gitflic-cli
+cd ~/tools/gitflic-cli && bash install.sh
+
 # Windows / PowerShell
 powershell -ExecutionPolicy Bypass -File install.ps1
 
@@ -57,13 +63,9 @@ powershell -ExecutionPolicy Bypass -File install.ps1
 bash install.sh --prefix ~/my-tools
 bash install.sh --no-symlink
 bash install.sh --dry-run
-
-# С токеном (HTTPS вместо SSH)
-GITFLIC_TOKEN=xxxx bash install.sh
-
-# Ручками
-ln -sf ~/tools/gitflic-cli/bin/gitflic ~/.local/bin/gitflic
 ```
+
+Готовые tar.gz — на [странице загрузок](https://cli-gitflic.ru/downloads/).
 </details>
 
 → Подробно: [Установка](https://cli-gitflic.ru/install.html)
@@ -143,7 +145,13 @@ gitflic mr list --project tikhon/wave --format json \
   | jq '[._embedded.mergeRequestModelList[] | select(.status.id == "OPENED")] | length'
 ```
 
-Есть **MCP-сервер** (Model Context Protocol) с типизированными тулами поверх CLI — подключается к Claude Code, Cursor и др. → [MCP-сервер](https://cli-gitflic.ru/mcp-server.html). Для ИИ также опубликованы [`/llms.txt`](https://cli-gitflic.ru/llms.txt) и [`/llms-full.txt`](https://cli-gitflic.ru/llms-full.txt).
+Есть **MCP-сервер** (Model Context Protocol) с типизированными тулами поверх CLI — подключается к Claude Code, Cursor и др. через `npx`, без установки:
+
+```bash
+claude mcp add gitflic --env GITFLIC_TOKEN=xxxx -- npx -y gitflic-cli-mcp
+```
+
+→ [MCP-сервер](https://cli-gitflic.ru/mcp-server.html). Для ИИ также опубликованы [`/llms.txt`](https://cli-gitflic.ru/llms.txt) и [`/llms-full.txt`](https://cli-gitflic.ru/llms-full.txt).
 
 ## 🏗️ Архитектура
 

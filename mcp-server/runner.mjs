@@ -3,19 +3,44 @@
 import { spawn } from "node:child_process";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import { createRequire } from "node:module";
+import { existsSync } from "node:fs";
+import process from "node:process";
 
+const require = createRequire(import.meta.url);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// Resolve path to the parent bin/gitflic
-const CLI_BIN = resolve(__dirname, "..", "bin", "gitflic");
+// Resolve the gitflic CLI's Node entrypoint, then run it with `node`.
+// We deliberately avoid the bash shim (bin/gitflic) so this works on Windows
+// and when the MCP server is installed standalone via `npx gitflic-cli-mcp`:
+//   - installed from npm:  `gitflic-cli` is a dependency → resolves from node_modules
+//   - source checkout:     mcp-server/ sits inside the CLI repo → ../lib/gitflic.mjs
+// Fail fast with a clear message if neither is present, instead of a cryptic
+// ENOENT on the first tool call.
+function resolveCliEntry() {
+  try {
+    return require.resolve("gitflic-cli/lib/gitflic.mjs");
+  } catch {
+    const fallback = resolve(__dirname, "..", "lib", "gitflic.mjs");
+    if (!existsSync(fallback)) {
+      throw new Error(
+        "gitflic CLI not found: neither the 'gitflic-cli' package nor the " +
+          `source-checkout fallback (${fallback}) is available. Install ` +
+          "gitflic-cli (e.g. via `npx -y gitflic-cli-mcp`) or run from the repo.",
+      );
+    }
+    return fallback;
+  }
+}
+const CLI_ENTRY = resolveCliEntry();
 
 /**
  * Run a gitflic command and return {stdout, stderr, code}.
  */
 export function runGitflic(args, { env = {}, cwd, timeoutMs = 60_000 } = {}) {
   return new Promise((resolveP, rejectP) => {
-    const proc = spawn(CLI_BIN, args, {
+    const proc = spawn(process.execPath, [CLI_ENTRY, ...args], {
       env: { ...process.env, ...env },
       cwd,
       timeout: timeoutMs,
