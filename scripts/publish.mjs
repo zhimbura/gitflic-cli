@@ -1,27 +1,25 @@
 #!/usr/bin/env node
-// scripts/publish.mjs — publish gitflic-cli + gitflic-cli-mcp to npm and keep
-// the Homebrew formula's `url` + `sha256` in sync with the published tarball.
+// scripts/publish.mjs — publish gitflic-cli + gitflic-cli-mcp to npm.
 //
 // Usage:
 //   node scripts/publish.mjs --dry-run        validate both packages, publish nothing
-//   node scripts/publish.mjs --bump-formula   recompute the formula sha256 (no publish)
-//   node scripts/publish.mjs                   real publish (needs `npm login`) + formula bump
+//   node scripts/publish.mjs                   real publish (needs `npm login`)
 //
-// Why a script: the MCP package depends on `gitflic-cli`, so the CLI MUST be
-// published first. The Homebrew formula must carry the exact sha256 of the npm
-// tarball — and `npm pack` produces the byte-identical tarball the registry
-// serves, so we can compute it locally without waiting for registry propagation.
+// The MCP package depends on `gitflic-cli`, so the CLI MUST be published first.
+//
+// 2FA note: npm's browser web-login is one-shot per `npm publish` invocation, so
+// these two back-to-back publishes can trip it (the 2nd runs unauthenticated and
+// fails with a misleading E404). If that happens, publish the packages separately:
+//   npm publish              # gitflic-cli (root)
+//   npm publish ./mcp-server # gitflic-cli-mcp
 
 import { spawnSync } from "node:child_process";
-import { createHash } from "node:crypto";
-import { mkdtempSync, readFileSync, readdirSync, writeFileSync, rmSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
-import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
 
 const ROOT = resolve(fileURLToPath(new URL(".", import.meta.url)), "..");
 const MCP = join(ROOT, "mcp-server");
-const FORMULA = join(ROOT, "packaging", "homebrew", "Formula", "gitflic.rb");
 
 const C = {
   g: (s) => `\x1b[32m${s}\x1b[0m`,
@@ -34,12 +32,10 @@ const die = (m) => { console.error(`  ${C.r("✗")} ${m}`); process.exit(1); };
 
 const args = new Set(process.argv.slice(2));
 const DRY = args.has("--dry-run");
-const ONLY_FORMULA = args.has("--bump-formula");
 
 const pkg = JSON.parse(readFileSync(join(ROOT, "package.json"), "utf8"));
 const mcpPkg = JSON.parse(readFileSync(join(MCP, "package.json"), "utf8"));
 const VERSION = pkg.version;
-const TARBALL_URL = `https://registry.npmjs.org/gitflic-cli/-/gitflic-cli-${VERSION}.tgz`;
 
 // Guard: the MCP package depends on gitflic-cli; if its range no longer admits
 // the CLI version, `npx gitflic-cli-mcp` could resolve a stale CLI. Catch it here.
@@ -69,48 +65,13 @@ if (satisfies === false) {
   console.log(`  ${C.r("!")} could not check gitflic-cli range "${depRange}" vs ${VERSION} — verify by hand`);
 }
 
-function run(cmd, cmdArgs, cwd = ROOT, opts = {}) {
-  const r = spawnSync(cmd, cmdArgs, { stdio: "inherit", cwd, ...opts });
+function run(cmd, cmdArgs, cwd = ROOT) {
+  const r = spawnSync(cmd, cmdArgs, { stdio: "inherit", cwd });
   if (r.status !== 0) die(`${cmd} ${cmdArgs.join(" ")} exited ${r.status}`);
   return r;
 }
 
-// Pack the CLI locally and return the sha256 of the produced tarball.
-// This is byte-identical to what `npm publish` uploads and the registry serves.
-function packAndHashCli() {
-  const out = mkdtempSync(join(tmpdir(), "gfc-pack-"));
-  try {
-    const r = spawnSync("npm", ["pack", "--pack-destination", out], {
-      cwd: ROOT,
-      stdio: ["ignore", "pipe", "inherit"],
-      encoding: "utf8",
-    });
-    if (r.status !== 0) die("npm pack (gitflic-cli) failed");
-    const tgz = readdirSync(out).find((f) => f.endsWith(".tgz"));
-    if (!tgz) die("npm pack produced no .tgz");
-    const buf = readFileSync(join(out, tgz));
-    return createHash("sha256").update(buf).digest("hex");
-  } finally {
-    rmSync(out, { recursive: true, force: true });
-  }
-}
-
-function bumpFormula(sha) {
-  let txt = readFileSync(FORMULA, "utf8");
-  txt = txt.replace(/^\s*url ".*"$/m, `  url "${TARBALL_URL}"`);
-  txt = txt.replace(/^\s*sha256 ".*"$/m, `  sha256 "${sha}"`);
-  writeFileSync(FORMULA, txt);
-  ok(`formula → url gitflic-cli-${VERSION}.tgz, sha256 ${sha.slice(0, 12)}…`);
-}
-
-console.log(`\n${C.b("→")} gitflic-cli ${C.c(VERSION)} + gitflic-cli-mcp ${C.c(JSON.parse(readFileSync(join(MCP, "package.json"), "utf8")).version)}\n`);
-
-if (ONLY_FORMULA) {
-  console.log("[bump-formula] npm pack + sha256");
-  bumpFormula(packAndHashCli());
-  console.log(`\n${C.g(C.b("Formula updated."))} Copy Formula/gitflic.rb into your tap repo and push.\n`);
-  process.exit(0);
-}
+console.log(`\n${C.b("→")} gitflic-cli ${C.c(VERSION)} + gitflic-cli-mcp ${C.c(mcpPkg.version)}\n`);
 
 if (DRY) {
   console.log("[1/2] npm pack --dry-run (gitflic-cli)");
@@ -119,22 +80,19 @@ if (DRY) {
   run("npm", ["pack", "--dry-run"], MCP);
   console.log(`\n${C.g(C.b("Dry run OK."))} To publish for real:`);
   console.log(`  ${C.c("npm login")}`);
-  console.log(`  ${C.c("node scripts/publish.mjs")}\n`);
+  console.log(`  ${C.c("node scripts/publish.mjs")}`);
+  console.log(`  (if the 2FA browser-login fails on the 2nd package, publish separately:`);
+  console.log(`   ${C.c("npm publish")} then ${C.c("npm publish ./mcp-server")})\n`);
   process.exit(0);
 }
 
-// Real publish. CLI first (MCP depends on it), then MCP, then sync the formula.
-console.log("[1/3] publish gitflic-cli");
+// Real publish. CLI first (MCP depends on it), then MCP.
+console.log("[1/2] publish gitflic-cli");
 run("npm", ["publish"], ROOT);
 ok("gitflic-cli published");
 
-console.log("\n[2/3] publish gitflic-cli-mcp");
+console.log("\n[2/2] publish gitflic-cli-mcp");
 run("npm", ["publish"], MCP);
 ok("gitflic-cli-mcp published");
 
-console.log("\n[3/3] sync Homebrew formula");
-bumpFormula(packAndHashCli());
-
-console.log(`\n${C.g(C.b("Published."))} Next:`);
-console.log(`  • Copy ${C.c("packaging/homebrew/Formula/gitflic.rb")} into your tap repo and push.`);
-console.log(`  • Verify: ${C.c("npx -y gitflic-cli@" + VERSION + " help")}\n`);
+console.log(`\n${C.g(C.b("Published."))} Verify: ${C.c("npx -y gitflic-cli@" + VERSION + " help")}\n`);

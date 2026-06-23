@@ -21,16 +21,6 @@ npx gitflic-cli help
 npx gitflic-cli mr list --project owner/repo
 ```
 
-## Homebrew (macOS / Linux) — скоро
-
-Формула готова, tap ещё не опубликован. Когда появится, установка будет такой:
-
-```bash
-brew install zhimbura/tap/gitflic
-```
-
-А пока используй **npm** (выше) или установку из исходников (ниже).
-
 ## Из исходников (SSH-клон + install.sh)
 
 Подходит, если хочешь хакать CLI локально. Нужен SSH-ключ в https://gitflic.ru.

@@ -46,8 +46,6 @@ npm install -g gitflic-cli
 npx gitflic-cli help
 ```
 
-> 🍺 **Homebrew** — готовится (tap скоро). А пока — npm выше или из исходников ниже.
-
 <details>
 <summary>Из исходников (git clone + install.sh) и другие альтернативы</summary>
 
@@ -181,7 +179,7 @@ gitflic-cli/
 ## 🛠️ Разработка
 
 ```bash
-npm test            # 166 unit-тестов (vitest)
+npm test            # 256 unit-тестов (vitest)
 npm run build       # lint + тесты + portable tar.gz → dist/
 npm run docs:dev    # локальный VitePress dev-server
 npm run docs:publish # собрать и задеплоить доку
