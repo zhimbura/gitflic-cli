@@ -84,6 +84,11 @@ describe("slimResult — issue list", () => {
     expect(out).toEqual({ items: [], total: 0, returned: 0 });
   });
 
+  it("empty UNMAPPED list tool (e.g. branch_protection_list) also gets {items:[]}", () => {
+    const out = slimResult("gitflic_branch_protection_list", { page: { totalElements: 0 } }, {}, {});
+    expect(out).toEqual({ items: [], total: 0, returned: 0 });
+  });
+
   it("is meaningfully smaller (byte budget guard)", () => {
     const big = issueList(Array.from({ length: 20 }, (_, i) => rawIssue(i + 1, "OPEN", ["Security", "bug"])));
     const rawLen = JSON.stringify(big, null, 2).length;

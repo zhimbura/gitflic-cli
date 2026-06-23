@@ -5,6 +5,7 @@
 > Релиз только MCP-пакета. CLI `gitflic-cli` без изменений — остаётся 0.3.5.
 
 - **Live-прогон всех 77 тулзов** (рой агентов гонял CLI в бою на тест-репо) выявил баг: клиентский `q`-фильтр в `slim.mjs` искал только по `title`/`description`/`shortMessage`/`message`, поэтому `gitflic_user_search` отбрасывал **все** найденные сервером результаты (`matched:0`) — у пользователей нет `title`/`description`. Haystack расширен: добавлены `username`/`fullName`/`name`/`alias`/`tagName`, так что `q` корректно работает для user/project/release. Тест + живая проверка. (Итог прогона: 69 ✓, 0 падений; остальные — легитимные skip: auth-мутации keychain, member-invite, `tag get` 400-quirk, mr-discuss без треда.)
+- **Прямой sweep slim-слоя** (реальный ответ каждого read-тула → `slimResult`, 34 тула) добил ещё одну мелочь: пустой список **незамапленного** list-тула (напр. `gitflic_branch_protection_list` без правил) отдавал сырую обёртку `{page}` вместо `{items:[],total,returned:0}`. Fallback пустого списка расширен на любой `*_list`/`*_search`. Все 34 read-тула дают валидный slim, секрет вебхука не утекает ни на одном пути.
 
 ## gitflic-cli 0.3.5 — 2026-06-24 — fix: ещё несколько partial-edit затирали поля
 

@@ -287,7 +287,12 @@ export function slimResult(toolName, result, args = {}, env = process.env) {
   // Treat known list tools as lists even when GitFlic omits `_embedded` on a
   // zero-result response, so the {items,total,returned} contract is consistent.
   let lst = listOf(result);
-  if (!lst && shape.list && result.page) lst = { items: [], total: result.page.totalElements };
+  // Zero-result lists omit `_embedded` entirely. Treat any list tool (mapped
+  // OR an unmapped *_list/*_search) carrying a `page` envelope as an empty list
+  // so the {items,total,returned} contract holds even when there are no items.
+  if (!lst && result.page && (shape.list || /_(list|search)$/.test(toolName))) {
+    lst = { items: [], total: result.page.totalElements };
+  }
 
   if (lst) {
     let items = Array.isArray(lst.items) ? lst.items : [];
