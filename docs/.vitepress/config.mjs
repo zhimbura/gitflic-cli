@@ -42,8 +42,10 @@ export default defineConfig({
   head: [
     // Favicons. .ico fallback first — Yandex, legacy browsers and many crawlers
     // probe /favicon.ico and don't read SVG favicons; SVG is preferred where supported.
+    // .ico packs 16–128; the 192px PNG covers Yandex's ≥120px raster recommendation.
     ["link", { rel: "icon", href: "/favicon.ico", sizes: "any" }],
     ["link", { rel: "icon", type: "image/svg+xml", href: "/_media/icon.svg" }],
+    ["link", { rel: "icon", type: "image/png", sizes: "192x192", href: "/_media/favicon-192x192.png" }],
     ["link", { rel: "icon", type: "image/png", sizes: "32x32", href: "/_media/favicon-32x32.png" }],
     ["link", { rel: "icon", type: "image/png", sizes: "16x16", href: "/_media/favicon-16x16.png" }],
     ["link", { rel: "apple-touch-icon", sizes: "180x180", href: "/_media/apple-touch-icon.png" }],
