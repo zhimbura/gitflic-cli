@@ -1,3 +1,7 @@
+---
+description: "Команда gitflic saml: управление подключениями SAML SSO (Single Sign-On) в GitFlic через /admin/saml. Требует прав инстанс-администратора."
+---
+
 # SAML SSO (`gitflic saml ...`)
 
 > ⚠️ Admin-only. Требуются права администратора инстанса (для обычного токена — 403/404). Code-only — не live-tested на self-hosted с настроенным SAML.
@@ -43,3 +47,9 @@ gitflic saml edit <samlUuid> --idp-metadata-url https://idp.example.com/metadata
 gitflic saml change-status <samlUuid> --enabled true
 gitflic saml change-status <samlUuid> --enabled false
 ```
+
+## См. также
+
+- [Админ](admin.md)
+- [Аутентификация](/auth/)
+- [Известные проблемы](../known-issues.md)

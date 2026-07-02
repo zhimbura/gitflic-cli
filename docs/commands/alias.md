@@ -1,3 +1,7 @@
+---
+description: "Команда gitflic alias — persistent user-конфиг CLI: default-project, api-base и другие ключи (всё, что не токен). Хранится с chmod 0600."
+---
+
 # `alias`
 
 Persistent key-value конфиг. Управляет тем, что **не является токеном** — `default-project`, `api-base`, и т.п.

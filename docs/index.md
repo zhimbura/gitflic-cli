@@ -2,7 +2,7 @@
 layout: home
 title: "gitflic-cli — CLI для GitFlic (REST API)"
 titleTemplate: false
-description: "gitflic-cli — консольный клиент (CLI) для GitFlic (gitflic.ru). 100% покрытие REST API (~199 эндпоинтов, 20 модулей): merge-реквесты, релизы, задачи, ветки, теги, реестр пакетов, CI/CD. Без зависимостей, с MCP-сервером для AI-агентов."
+description: "gitflic-cli — консольный клиент (CLI) для GitFlic: 100% покрытие REST API (~199 эндпоинтов, 20 модулей), ноль зависимостей и MCP-сервер для AI-агентов."
 
 hero:
   name: gitflic-cli

@@ -1,3 +1,7 @@
+---
+description: "Команды gitflic user, team и company: профиль и поиск пользователей GitFlic, управление командами и просмотр компаний. Пагинация и --format json."
+---
+
 # Пользователи, команды, компании
 
 Все list-команды поддерживают `--page N`, `--size N`, `--all`, `--stream` и `--format json`.
@@ -94,3 +98,9 @@ gitflic company import run acme --branch --environment --tag --mr-approval --pip
 ```
 
 > ⚠️ В GitFlic REST нет эндпоинтов `company edit` и `company delete` (PUT/DELETE → 405) — изменение/удаление компаний только через Web UI.
+
+## См. также
+
+- [Проекты](project.md)
+- [Настройки пользователя](settings.md)
+- [Все команды](/commands/)

@@ -1,3 +1,7 @@
+---
+description: "Команды gitflic для CI/CD GitFlic: пайплайны, джобы, артефакты, переменные, environments, вебхуки проекта и runners (агенты)."
+---
+
 # CI/CD, вебхуки, environments, runners
 
 ## cicd
@@ -150,3 +154,9 @@ gitflic environment protection delete <uuid> --project tikhon
 ```
 
 > Универсального CRUD для environments (создание/удаление как сущности) **нет в публичном REST**. Environments живут как deploy-targets per pipeline job, управляются через Web UI.
+
+## См. также
+
+- [Проекты](project.md)
+- [Релизы](release.md)
+- [Все команды](/commands/)

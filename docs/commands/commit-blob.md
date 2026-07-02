@@ -1,3 +1,7 @@
+---
+description: "Команды gitflic commit и blob: список и просмотр коммитов GitFlic, сравнение (diff), получение файлов и raw-содержимого репозитория."
+---
+
 # Коммиты и файлы
 
 ## commit
@@ -105,3 +109,9 @@ gitflic blob file-size README.md --branch master --project FerdBur/wave
 ```
 
 > 💡 Для бинарных файлов используй `blob download` — он сохраняет байты на диск без искажений. `blob get` отдаёт сырой текст в stdout.
+
+## См. также
+
+- [Merge Requests](mr.md)
+- [Ветки и теги](branch-tag.md)
+- [Проекты](project.md)

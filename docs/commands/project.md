@@ -1,3 +1,7 @@
+---
+description: "Команды gitflic project для проектов GitFlic: CRUD, участники, команды, форки, зеркала, импорт, deploy-токены, файлы, звёзды и подписчики."
+---
+
 # Проекты
 
 ```bash
@@ -195,3 +199,9 @@ gitflic alias set default-project tikhon/gitflic-cli
 cd ~/anywhere
 gitflic mr list              # → использует tikhon/gitflic-cli как fallback
 ```
+
+## См. также
+
+- [Пользователи и команды](user-team.md)
+- [CI/CD, вебхуки, агенты](cicd-webhook.md)
+- [Все команды](/commands/)

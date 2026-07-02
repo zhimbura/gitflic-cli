@@ -1,3 +1,7 @@
+---
+description: "Команды gitflic release для релизов GitFlic: CRUD релизов и multipart-загрузка ассетов (upload, download, delete-file) с примерами."
+---
+
 # Релизы (`gitflic release ...`)
 
 CRUD релизов + **multipart-загрузка файлов** (download / delete-file).
@@ -102,3 +106,9 @@ gitflic release upload $UUID ./myapp-1.0.0.tar.gz --project FerdBur/wave
 gitflic release get $UUID --project FerdBur/wave --format json | jq '.attachmentFiles'
 gitflic release download $UUID <fileUuid> --project FerdBur/wave --out ./myapp-1.0.0.tar.gz
 ```
+
+## См. также
+
+- [Ветки и теги](branch-tag.md)
+- [Реестр пакетов](registry.md)
+- [Релизы и артефакты](/releases/)

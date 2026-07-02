@@ -1,3 +1,7 @@
+---
+description: "Команды gitflic auth login, logout, status и list: вход в GitFlic по токену, проверка через /user/me и управление сохранёнными учётными записями."
+---
+
 # `auth login` / `logout` / `status` / `list`
 
 ## login

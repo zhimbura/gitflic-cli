@@ -1,3 +1,7 @@
+---
+description: "Известные ограничения GitFlic REST API и обходные пути в gitflic-cli: tag get 400, mr merge 422, архив проекта 404, загрузка ассетов 415 и другие."
+---
+
 # Известные проблемы и обходы
 
 > CLI покрывает ~100% публичного REST API GitFlic. Перечисленные ниже ограничения — это
@@ -200,3 +204,9 @@ MCP-сервер (`mcp-server/`) требует `@modelcontextprotocol/sdk`. Э�
   ✅ **Исправлено.** Добавлен `htmlUnescape()` в `lib/format.mjs`, применяется к строкам диффа и
   заголовкам ханков в `printChanges()` (`lib/cmd/mr.mjs`). Декодирование однопроходное (`&amp;`
   обрабатывается без двойного прохода), покрыто тестами в `lib/__tests__/format.test.mjs`.
+
+## См. также
+
+- [Все команды](/commands/)
+- [Покрытие API](api-coverage.md)
+- [MCP-сервер](mcp-server.md)

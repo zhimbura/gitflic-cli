@@ -1,3 +1,7 @@
+---
+description: "Команда gitflic completion: автодополнение shell для bash, zsh и fish — установка и подключение скриптов автодополнения gitflic-cli."
+---
+
 # `completion`
 
 Shell completion для bash/zsh/fish.
@@ -46,3 +50,9 @@ gitflic <TAB>            # покажет: auth mr branch tag release issue comm
 gitflic mr <TAB>         # покажет: list view diff create edit approve merge ...
 gitflic mr list --<TAB>  # покажет: --project --api-base --token --format --all ...
 ```
+
+## См. также
+
+- [Установка](../install.md)
+- [Флаги](../flags.md)
+- [Все команды](/commands/)

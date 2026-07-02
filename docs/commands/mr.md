@@ -1,3 +1,7 @@
+---
+description: "Команды gitflic mr для merge-реквестов GitFlic: цикл list → view → diff → create → approve/merge → close, комментарии, дискуссии и TUI-браузер."
+---
+
 # Merge Requests (`gitflic mr ...`)
 
 Главный модуль. Покрывает полный жизненный цикл MR: list → view → create → review → approve/merge → close.
@@ -224,3 +228,9 @@ gitflic mr list --project FerdBur/wave --all --format json \
 
 - `mr merge` на свежем проекте может упасть с `MergeCheckException`, если default branch protection требует approve от не-автора. Это поведение GitFlic, не баг CLI.
 - Source-ветку существующего MR менять нельзя (`mr edit` принимает только `--to`, не `--from`) — ограничение GitFlic API.
+
+## См. также
+
+- [Задачи](issue.md)
+- [Ветки и теги](branch-tag.md)
+- [Все команды](/commands/)

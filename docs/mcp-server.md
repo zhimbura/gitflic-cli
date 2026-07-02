@@ -1,3 +1,7 @@
+---
+description: "MCP-сервер gitflic-cli: обёртка CLI в тулзы Model Context Protocol для AI-агентов (Claude Code, Cursor) со сжатием ответов и экономией токенов."
+---
+
 # MCP-сервер для AI-агентов
 
 `mcp-server/` — это [Model Context Protocol](https://modelcontextprotocol.io) сервер, оборачивающий CLI `gitflic` в **типизированные тулзы** для AI-агентов (Claude Code, Cursor и т.п.).
@@ -281,3 +285,10 @@ node scripts/annotate-mcp-tools.mjs
 - `destructiveHint` **не означает "обязательно удалит"** — это hint, что *может*. Хосты используют его для UI prompt, но не для блокировки.
 - Если хост не поддерживает annotations (старые версии), всё работает как раньше — annotations просто игнорируются.
 - `idempotentHint` используется MCP-хостами для авто-retry, но в нашей реализации retry сам делает CLI (через `GITFLIC_HTTP_RETRIES`). Так что это скорее hint для пользователя.
+
+## См. также
+
+- [Быстрый старт](quickstart.md) — установка и первые команды `gitflic`.
+- [Все команды](/commands/) — какие подкоманды стоят за 77 тулзами MCP.
+- [ENV переменные](env.md) — `GITFLIC_TOKEN`, `GITFLIC_API_BASE` и настройки поведения.
+- [Аутентификация](/auth/) — как MCP-сервер получает токен из keychain.

@@ -1,3 +1,7 @@
+---
+description: "Команда gitflic registry: реестр пакетов GitFlic для Maven, npm, PyPI, NuGet, Cargo и др. — список, версии, файлы, upload и download артефактов."
+---
+
 # Реестр пакетов
 
 GitFlic registry поддерживает несколько форматов пакетов (Maven, NPM, PyPI, NuGet, Composer, OPM, CRAN, RubyGem, Cargo, Conda, generic). CLI покрывает полностью: список/просмотр/версии/файлы/удаление пакетов, а также upload/download артефактов для всех форматов.
@@ -158,3 +162,9 @@ gitflic registry repo download --format npm <uuid> my-pkg my-pkg-1.0.tgz --out .
 gitflic registry list   # -> alias of 'registry package list'
 gitflic registry repos  # -> alias of 'registry repo list --scope instance'
 ```
+
+## См. также
+
+- [Релизы](release.md)
+- [Известные проблемы](../known-issues.md)
+- [Все команды](/commands/)

@@ -1,3 +1,7 @@
+---
+description: "Команды gitflic branch и tag: список, создание и удаление веток и тегов GitFlic, правила защиты веток (branch protection) и ветка по умолчанию."
+---
+
 # Ветки и теги
 
 ## branch
@@ -124,3 +128,9 @@ gitflic tag protection apply-settings --scope team --team tikhon
 ```
 
 `NO_ONE | DEVELOPER | ADMINS` — уровни доступа для создания тегов.
+
+## См. также
+
+- [Merge Requests](mr.md)
+- [Коммиты и файлы](commit-blob.md)
+- [Известные проблемы](../known-issues.md)

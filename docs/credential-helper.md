@@ -1,3 +1,7 @@
+---
+description: "Настройка gitflic как git credential helper: git push и git pull к GitFlic автоматически получают токен через CLI, без ручного ввода паролей."
+---
+
 # Git credential helper
 
 > ⚠️ Не реализовано. Это страница-плейсхолдер для будущей фичи.
@@ -44,3 +48,9 @@ GitFlic поддерживает HTTPS push только с **SSH-ключом �
 ## Если очень нужно
 
 Открой issue: https://gitflic.ru/project/tikhon/gitflic-cli/-/issues с описанием use-case. Реализуем, если спрос есть.
+
+## См. также
+
+- [Аутентификация](/auth/) — хранение токена и resolution chain.
+- [settings](commands/settings.md) — SSH-ключи, access- и transport-токены.
+- [Известные проблемы](known-issues.md) — HTTPS git push с токеном и через SSH-ключ.

@@ -1,3 +1,7 @@
+---
+description: "Команда gitflic cache: локальный file-based кеш project UUID (alias → UUID) для быстрого и стабильного резолвинга проектов между запросами."
+---
+
 # `cache`
 
 Локальный file-based кеш для project UUID resolution (alias → UUID маппинг стабильно между запросами).
@@ -36,3 +40,9 @@ GITFLIC_NO_CACHE=1 gitflic mr list --project x/y
 ```
 
 `e` — epoch ms, после которого запись считается протухшей.
+
+## См. также
+
+- [alias](alias.md)
+- [Флаги](../flags.md)
+- [Все команды](/commands/)

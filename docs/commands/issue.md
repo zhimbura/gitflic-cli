@@ -1,3 +1,7 @@
+---
+description: "Команды gitflic issue для задач GitFlic: полный CRUD, комментарии, связи (relations), работа с файлами и загрузка вложений из консоли."
+---
+
 # Задачи (`gitflic issue ...`)
 
 Полный CRUD + комментарии + связи (relations) + работа с файлами + загрузка вложений.
@@ -111,3 +115,9 @@ gitflic issue attachment upload <localId> ./screenshot.png --project FerdBur/wav
 gitflic issue list --project FerdBur/wave --status OPEN --all --format json \
   | jq -r '.[] | select(.assignee == null) | "#\(.localId) \(.title)"'
 ```
+
+## См. также
+
+- [Merge Requests](mr.md)
+- [Пользователи и команды](user-team.md)
+- [Все команды](/commands/)

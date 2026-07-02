@@ -1,3 +1,7 @@
+---
+description: "Привязка проектов к аккаунтам в gitflic-cli: автоматический выбор нужного токена GitFlic для каждого проекта через per-project bindings."
+---
+
 # Per-project account bindings
 
 Привязка `<project> → <account>` говорит CLI: "когда пользователь работает с этим проектом, всегда используй токен этого аккаунта". Полезно, если:
@@ -102,3 +106,9 @@ gitflic mr list           # → flags.project = "FerdBur/wave" → binding → t
 ```
 
 Не нужно каждый раз писать `--project`.
+
+## См. также
+
+- [Аутентификация](/auth/)
+- [Multi-account](multi-account.md)
+- [auth login](login.md)

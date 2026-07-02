@@ -1,3 +1,7 @@
+---
+description: "Админ-команды gitflic admin для GitFlic: управление пользователями (CRUD), бан, SSH-ключи, push-статистика, настройки сервиса и импорт из LDAP."
+---
+
 # Admin endpoints (`gitflic admin ...`)
 
 > ⚠️ Все команды требуют **admin-токен** (instance-admin права). Для обычного токена вернётся 403/404. Code-only: реализовано по спеке, не live-tested на публичном SaaS.
@@ -200,5 +204,7 @@ gitflic admin ldap import 7c8d9e10-...
 
 ## См. также
 
-- Раннеры инстанса — `gitflic runner` (требует instance-admin права).
-- SAML — `gitflic saml` (требует instance-admin права).
+- [SAML SSO](saml.md) — тоже требует прав инстанс-админа.
+- [CI/CD, вебхуки, агенты](cicd-webhook.md#runner) — раннеры инстанса (`gitflic runner`).
+- [Пользователи и команды](user-team.md) — управление пользователями.
+- [Известные проблемы](../known-issues.md) — почему admin отдаёт 403/404 обычным токеном.

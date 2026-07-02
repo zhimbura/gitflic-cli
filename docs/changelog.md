@@ -1,3 +1,7 @@
+---
+description: "История изменений gitflic-cli и MCP-сервера: новые команды, покрытие GitFlic REST API, улучшения и исправления по версиям."
+---
+
 # Changelog
 
 Все значимые изменения в `gitflic-cli`. Формат — приближённый к [Keep a Changelog](https://keepachangelog.com/).

@@ -1,3 +1,7 @@
+---
+description: "Глобальные флаги gitflic-cli: --project, --api-base, --token, --format, --page/--size/--all, --stream и другие — как задаётся контекст команд."
+---
+
 # Флаги
 
 ## Глобальные (почти все команды)
@@ -222,3 +226,9 @@ gitflic mr create --project FerdBur/wave \
   --no-remove-branch \
   --format json
 ```
+
+## См. также
+
+- [ENV переменные](env.md)
+- [Все команды](/commands/)
+- [Аутентификация](/auth/)

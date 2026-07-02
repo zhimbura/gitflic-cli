@@ -126,8 +126,16 @@ function renderReleasesPage(versions) {
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <title>Релизы · gitflic-cli</title>
+  <title>Скачать gitflic-cli — релизы (tar.gz)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Скачать gitflic-cli — портативные tar.gz-сборки CLI для GitFlic. Без внешних зависимостей: распакуй, запусти install.sh и используй gitflic. Все версии релизов." />
+  <link rel="canonical" href="https://cli-gitflic.ru/downloads/" />
+  <meta name="robots" content="index, follow, max-image-preview:large" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Скачать gitflic-cli — релизы" />
+  <meta property="og:description" content="Портативные tar.gz-сборки CLI для GitFlic. Без внешних зависимостей — распакуй и запусти install.sh." />
+  <meta property="og:url" content="https://cli-gitflic.ru/downloads/" />
+  <meta property="og:image" content="https://cli-gitflic.ru/og.png" />
   <link rel="icon" type="image/svg+xml" href="../_media/icon.svg" />
   <style>
     :root { --theme: #e8423a; --fg: #1a1a1a; --muted: #6c757d; --bg: #fff; --border: #e6e6e6; }
@@ -145,6 +153,12 @@ function renderReleasesPage(versions) {
     .back { display: inline-block; margin-bottom: 18px; }
     code { background: rgba(0,0,0,0.05); padding: 1px 6px; border-radius: 3px; font-size: 0.9em; }
   </style>
+  <!-- Yandex.Metrika (counter id must match YANDEX_METRIKA_ID in docs/.vitepress/config.mjs) -->
+  <script type="text/javascript">
+    (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};m[i].l=1*new Date();for(var j=0;j<document.scripts.length;j++){if(document.scripts[j].src===r){return;}}k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})(window,document,"script","https://mc.yandex.ru/metrika/tag.js?id=110346937","ym");
+    ym(110346937,"init",{ssr:true,webvisor:true,clickmap:true,accurateTrackBounce:true,trackLinks:true});
+  </script>
+  <noscript><div><img src="https://mc.yandex.ru/watch/110346937" style="position:absolute;left:-9999px" alt="" /></div></noscript>
 </head>
 <body>
   <a class="back" href="../">← на главную документацию</a>

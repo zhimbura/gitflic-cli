@@ -1,3 +1,7 @@
+---
+description: "Все переменные окружения gitflic-cli: GITFLIC_TOKEN, GITFLIC_API_BASE, ретраи, кеш, отключение keychain, NO_COLOR и другие настройки поведения CLI."
+---
+
 # ENV переменные
 
 Все поддерживаемые переменные окружения.
@@ -60,3 +64,9 @@ export GITFLIC_TOKEN="$(security find-generic-password -a tikhon-staging -s gitf
 export GITFLIC_HTTP_RETRIES=0
 # Без ретраев — увидишь ошибки сразу, удобно при дебаге.
 ```
+
+## См. также
+
+- [Флаги](flags.md)
+- [Все команды](/commands/)
+- [MCP-сервер](mcp-server.md)
