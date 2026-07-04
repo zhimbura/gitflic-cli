@@ -1,0 +1,49 @@
+- generic [ref=e3]:
+  - link "Skip to content" [ref=e4] [cursor=pointer]:
+    - /url: "#VPContent"
+  - banner:
+    - generic:
+      - generic:
+        - generic:
+          - link "gitflic-cli — логотип gitflic-cli" [ref=e6] [cursor=pointer]:
+            - /url: /
+            - img "gitflic-cli — логотип" [ref=e7]
+            - generic [ref=e8]: gitflic-cli
+          - generic [ref=e9]:
+            - button "Search" [ref=e12] [cursor=pointer]:
+              - generic [ref=e15]: Search
+              - generic [ref=e16]:
+                - generic [ref=e17]: ⌘
+                - generic [ref=e18]: K
+            - navigation "Main Navigation" [ref=e19]:
+              - generic [ref=e20]: Main Navigation
+              - link "Быстрый старт" [ref=e21] [cursor=pointer]:
+                - /url: /quickstart.html
+                - generic [ref=e22]: Быстрый старт
+              - link "Команды" [ref=e23] [cursor=pointer]:
+                - /url: /commands/
+                - generic [ref=e24]: Команды
+              - link "Покрытие API" [ref=e25] [cursor=pointer]:
+                - /url: /api-coverage.html
+                - generic [ref=e26]: Покрытие API
+              - link "Changelog" [ref=e27] [cursor=pointer]:
+                - /url: /changelog.html
+                - generic [ref=e28]: Changelog
+              - link "Скачать" [ref=e29] [cursor=pointer]:
+                - /url: /downloads/
+                - generic [ref=e30]: Скачать
+              - link "GitFlic" [ref=e31] [cursor=pointer]:
+                - /url: https://gitflic.ru/project/tikhon/gitflic-cli
+                - generic [ref=e32]: GitFlic
+            - button "extra navigation" [ref=e34] [cursor=pointer]
+  - generic [ref=e37]:
+    - paragraph [ref=e38]: "404"
+    - heading "PAGE NOT FOUND" [level=1] [ref=e39]
+    - blockquote [ref=e41]: But if you don't change your direction, and if you keep looking, you may end up where you are heading.
+    - link "go to home" [ref=e43] [cursor=pointer]:
+      - /url: /
+      - text: Take me home
+  - contentinfo [ref=e44]:
+    - generic [ref=e45]:
+      - paragraph [ref=e46]: MIT License
+      - paragraph [ref=e47]: gitflic-cli — неофициальный пользовательский CLI для GitFlic
