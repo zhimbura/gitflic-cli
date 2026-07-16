@@ -37,32 +37,26 @@ const pkg = JSON.parse(readFileSync(join(ROOT, "package.json"), "utf8"));
 const mcpPkg = JSON.parse(readFileSync(join(MCP, "package.json"), "utf8"));
 const VERSION = pkg.version;
 
-// Guard: the MCP package depends on gitflic-cli; if its range no longer admits
-// the CLI version, `npx gitflic-cli-mcp` could resolve a stale CLI. Catch it here.
-function cliSatisfies(cliVer, range) {
-  const b = /^([~^]?)(\d+)\.(\d+)\.(\d+)/.exec((range || "").trim());
-  const c = /^(\d+)\.(\d+)\.(\d+)/.exec(cliVer || "");
-  if (!b || !c) return null; // unknown format → can't judge
-  const op = b[1];
-  const [bMaj, bMin, bPat] = [+b[2], +b[3], +b[4]];
-  const [maj, min, pat] = [+c[1], +c[2], +c[3]];
-  const gte =
-    maj > bMaj || (maj === bMaj && (min > bMin || (min === bMin && pat >= bPat)));
-  if (!gte) return false;
-  if (op === "^") return bMaj === 0 ? maj === 0 && min === bMin : maj === bMaj;
-  if (op === "~") return maj === bMaj && min === bMin;
-  return maj === bMaj && min === bMin && pat === bPat; // exact
-}
-
+// Guard: the MCP spawns the gitflic-cli binary it depends on, so the two must
+// ship as the exact pair that was tested together — the dep MUST pin, not range.
+//
+// A caret range looks harmless and is the trap: `^0.3.3` admits 0.3.3 itself, so
+// an npx cache already holding 0.3.3 *satisfies* the range and npm never
+// re-resolves it. The CLI fix then never reaches the user, however many versions
+// you publish. This shipped for real: users on gitflic-cli-mcp@0.4.1 kept running
+// the cached gitflic-cli@0.3.3, whose `issue edit` clobbers title/description
+// with the literal "stub" — a bug fixed back in 0.3.4.
+//
+// Asking "does the range admit the current CLI?" is the wrong question (^0.3.3
+// admits 0.3.5 just fine). The only safe answer is an exact pin.
 const depRange = (mcpPkg.dependencies || {})["gitflic-cli"];
-const satisfies = cliSatisfies(VERSION, depRange);
-if (satisfies === false) {
+if (depRange !== VERSION) {
   die(
-    `version mismatch: mcp-server depends on gitflic-cli "${depRange}" but the ` +
-      `CLI is ${VERSION}. Update "gitflic-cli" in mcp-server/package.json.`,
+    `mcp-server depends on gitflic-cli "${depRange}", but it must pin exactly "${VERSION}".\n` +
+      `  A range (^ ~ >=) lets a cached older CLI satisfy it, so npx never upgrades\n` +
+      `  and users stay stranded on a stale CLI. Set "gitflic-cli": "${VERSION}" in\n` +
+      `  mcp-server/package.json and bump the MCP version.`,
   );
-} else if (satisfies === null && depRange) {
-  console.log(`  ${C.r("!")} could not check gitflic-cli range "${depRange}" vs ${VERSION} — verify by hand`);
 }
 
 function run(cmd, cmdArgs, cwd = ROOT) {
