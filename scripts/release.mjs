@@ -75,6 +75,28 @@ function bumpVersion(pkg, target) {
   writeFileSync(join(ROOT, "package.json"), JSON.stringify(pkg, null, 2) + "\n");
 }
 
+// The MCP spawns the CLI binary it depends on, so its dep PINS the CLI exactly
+// (a range is what let an npx cache serve gitflic-cli@0.3.3 to gitflic-cli-mcp@0.4.1
+// users long after the fix — see the guard in publish.mjs). That makes re-pinning
+// and re-releasing the MCP part of every CLI release, not an optional follow-up:
+// ship a new CLI without it and npx users keep resolving the old one. Automated
+// here so it can't be forgotten; publish.mjs still refuses a mismatched pair.
+function syncMcpPin(cliVersion) {
+  const path = join(ROOT, "mcp-server", "package.json");
+  const mcp = JSON.parse(readFileSync(path, "utf8"));
+  const current = mcp.dependencies?.["gitflic-cli"];
+  if (current === cliVersion) return null; // already in sync
+
+  const [maj, min, pat] = mcp.version.split(".").map(Number);
+  if ([maj, min, pat].some(Number.isNaN)) fail(`bad mcp-server version "${mcp.version}"`);
+  const mcpVersion = `${maj}.${min}.${pat + 1}`;
+
+  mcp.dependencies["gitflic-cli"] = cliVersion;
+  mcp.version = mcpVersion; // changed dependency → the MCP needs its own release
+  writeFileSync(path, JSON.stringify(mcp, null, 2) + "\n");
+  return { from: current, pin: cliVersion, mcpVersion, mcpFrom: `${maj}.${min}.${pat}` };
+}
+
 async function promptVersion(current) {
   // Read one line from stdin synchronously. Simpler than readline and
   // doesn't leave a dangling "unsettled top-level await" warning on
@@ -202,6 +224,13 @@ if (!skipBump && target !== pkg.version) {
 // Re-read pkg.version (in case --no-bump was used)
 const finalVersion = JSON.parse(readFileSync(join(ROOT, "package.json"), "utf8")).version;
 
+// Keep the MCP's CLI pin in lockstep with the CLI being released — see syncMcpPin().
+const pinned = syncMcpPin(finalVersion);
+if (pinned) {
+  ok(`re-pinned mcp-server: gitflic-cli "${pinned.from}" → "${pinned.pin}"`);
+  ok(`bumped mcp-server/package.json → ${pinned.mcpVersion} (dependency changed)`);
+}
+
 // ---- Run build ----
 console.log(`\n${C.bold("→")} Building...`);
 const build = spawnSync("node", [join(ROOT, "scripts", "build.mjs")], {
@@ -227,3 +256,11 @@ ok(`rendered docs/public/downloads/index.html (${versions.length} release${versi
 console.log(`\n${C.green(C.bold("Release ready."))}`);
 console.log(`  Commit when ready: ${C.cyan("git add . && git commit -m 'release: v" + finalVersion + "'")}`);
 console.log(`  Then run \`npm run docs:publish\` to build + push the site (incl. /downloads/) to the mirror.`);
+if (pinned) {
+  console.log(
+    `\n  ${C.bold("Publish BOTH packages")} — mcp-server now pins gitflic-cli ${C.cyan(pinned.pin)}:\n` +
+      `    ${C.cyan("npm publish")}              # gitflic-cli ${finalVersion}  (must go first)\n` +
+      `    ${C.cyan("npm publish ./mcp-server")}  # gitflic-cli-mcp ${pinned.mcpVersion}\n` +
+      `  Skipping the MCP leaves npx users resolving the old CLI — the whole point of the pin.`,
+  );
+}
