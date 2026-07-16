@@ -18,3 +18,6 @@ docs/.vitepress/cache/
 # Local-only agent context (not for git — read by future Mavis sessions on this machine)
 .mavis/
 AGENTS.local.md
+
+# Browser-automation session artifacts (playwright MCP snapshots)
+.playwright-mcp/
