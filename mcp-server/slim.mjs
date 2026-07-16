@@ -79,7 +79,12 @@ const P = {
     status: statusId(i.status),
     labels: labelTitles(i.labels) ?? [],
     assignedUsers: (i.assignedUsers || []).map(userName).filter(Boolean),
-    author: i.userAlias ?? userName(i.createdBy),
+    // NOT i.userAlias: on an issue that is the *project owner's* alias (the
+    // `<userAlias>/<projectAlias>` path), identical on every issue in the repo —
+    // using it would report the owner as the author of everyone's issues.
+    // GitFlic's issue API exposes no author at all, so this stays undefined
+    // (key dropped on serialize) unless the API ever starts sending createdBy.
+    author: userName(i.createdBy),
     ...(i.updatedBy ? { updatedBy: userName(i.updatedBy) } : {}),
     createdAt: i.createdAt, updatedAt: i.updatedAt,
     ...(i.description != null ? { description: i.description } : {}),
@@ -209,7 +214,9 @@ export function applyListFilters(items, args = {}) {
   let out = items;
   if (args.label) out = out.filter((i) => (labelTitles(i.labels) || []).some((t) => ci(t).includes(ci(args.label))));
   if (args.assignee) out = out.filter((i) => (i.assignedUsers || []).some((u) => ci(userName(u)) === ci(args.assignee)));
-  if (args.author) out = out.filter((i) => ci(userName(i.createdBy) || userName(i.user) || i.userAlias || i.authorIdent?.name).includes(ci(args.author)));
+  // Mirrors the author resolution in P.mr / slimCommit. i.userAlias is NOT in
+  // the chain on purpose — it is the project owner's alias, not an author.
+  if (args.author) out = out.filter((i) => ci(userName(i.createdBy) || userName(i.author) || userName(i.user) || i.authorIdent?.name).includes(ci(args.author)));
   if (args.status) out = out.filter((i) => ci(statusId(i.status)) === ci(args.status));
   if (args.targetBranch) out = out.filter((i) => ci(branchName(i.targetBranch)).includes(ci(args.targetBranch)));
   if (args.sourceBranch) out = out.filter((i) => ci(branchName(i.sourceBranch)).includes(ci(args.sourceBranch)));

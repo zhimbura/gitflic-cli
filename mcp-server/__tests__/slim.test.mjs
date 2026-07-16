@@ -66,9 +66,25 @@ describe("slimResult — issue list", () => {
     expect(out.returned).toBe(2);
     expect(out.items[0]).toEqual({
       localId: 1, id: "uuid-1", title: "Issue 1", status: "OPEN",
-      labels: ["Security"], assignedUsers: ["alice"], author: "bob",
+      labels: ["Security"], assignedUsers: ["alice"],
       updatedBy: "carol", createdAt: "c", updatedAt: "u", description: "body 1",
     });
+  });
+
+  // Regression: `userAlias` is the project owner's alias (path <userAlias>/<projectAlias>),
+  // identical on every issue — it must never be reported as the issue's author.
+  it("does not fabricate an author from userAlias (project owner)", () => {
+    const out = slimResult("gitflic_issue_list", raw, {}, {});
+    for (const item of out.items) {
+      expect(item.author).toBeUndefined();
+    }
+    expect(JSON.stringify(out)).not.toContain("bob");
+  });
+
+  it("reports a real author if GitFlic ever sends createdBy", () => {
+    const withAuthor = issueList([{ ...rawIssue(1), createdBy: { id: "u3", username: "dave", fullName: "Dave" } }]);
+    const out = slimResult("gitflic_issue_list", withAuthor, {}, {});
+    expect(out.items[0].author).toBe("dave");
   });
 
   it("strips ALL noise keys (no avatar/cover/_links/hexColor/_embedded anywhere)", () => {
@@ -201,5 +217,31 @@ describe("applyListFilters — name glob", () => {
   it("matches branch globs like release/*", () => {
     const items = [{ name: "main" }, { name: "release/1.0" }, { name: "release/2.0" }];
     expect(applyListFilters(items, { name: "release/*" }).map((b) => b.name)).toEqual(["release/1.0", "release/2.0"]);
+  });
+});
+
+describe("applyListFilters — author", () => {
+  it("resolves the author from createdBy / author / user / authorIdent", () => {
+    const items = [
+      { id: "mr", createdBy: { username: "dave" } },
+      { id: "mr2", author: { username: "erin" } },
+      { id: "commit", user: { username: "frank" } },
+      { id: "unlinked", user: null, authorIdent: { name: "Grace" } },
+    ];
+    expect(applyListFilters(items, { author: "dave" }).map((i) => i.id)).toEqual(["mr"]);
+    expect(applyListFilters(items, { author: "erin" }).map((i) => i.id)).toEqual(["mr2"]);
+    expect(applyListFilters(items, { author: "frank" }).map((i) => i.id)).toEqual(["commit"]);
+    expect(applyListFilters(items, { author: "grace" }).map((i) => i.id)).toEqual(["unlinked"]);
+  });
+
+  // Regression: userAlias is the project owner, identical on every item — filtering
+  // by it must not match everything (nor shadow a real authorIdent fallback).
+  it("never matches on userAlias (project owner)", () => {
+    const items = [
+      { id: "a", userAlias: "bob" },
+      { id: "b", userAlias: "bob", authorIdent: { name: "Grace" } },
+    ];
+    expect(applyListFilters(items, { author: "bob" })).toEqual([]);
+    expect(applyListFilters(items, { author: "grace" }).map((i) => i.id)).toEqual(["b"]);
   });
 });
