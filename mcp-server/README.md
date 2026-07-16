@@ -1,6 +1,6 @@
 # gitflic-cli MCP-сервер
 
-[Model Context Protocol](https://modelcontextprotocol.io/) сервер, оборачивающий CLI `gitflic` и отдающий **76 типизированных тулзов** поверх команд GitFlic REST для AI-агентов (Claude Code, Cursor и т.п.).
+[Model Context Protocol](https://modelcontextprotocol.io/) сервер, оборачивающий CLI `gitflic` и отдающий **77 типизированных тулзов** поверх команд GitFlic REST для AI-агентов (Claude Code, Cursor и т.п.).
 
 ## Что внутри
 
@@ -66,7 +66,7 @@ claude mcp add gitflic --env GITFLIC_TOKEN=xxxxxxxx -- npx -y gitflic-cli-mcp
 
 ## Ограничение набора тулзов (экономия контекста)
 
-Все 76 тулзов уходят хосту по `tools/list` ещё до первого вызова — это ~6K токенов «налога» на контекст модели. Если агенту нужны не все, набор можно сузить через **env-переменные** — прописываются в том же `env`-блоке конфига, где `GITFLIC_TOKEN` (своего конфиг-файла у сервера нет, он читает `process.env` при старте).
+Все 77 тулзов уходят хосту по `tools/list` ещё до первого вызова — это ~6K токенов «налога» на контекст модели. Если агенту нужны не все, набор можно сузить через **env-переменные** — прописываются в том же `env`-блоке конфига, где `GITFLIC_TOKEN` (своего конфиг-файла у сервера нет, он читает `process.env` при старте).
 
 | Переменная | Значение | Что делает |
 |---|---|---|
@@ -118,14 +118,14 @@ claude mcp add gitflic --env GITFLIC_TOKEN=xxxxxxxx -- npx -y gitflic-cli-mcp
 **Примеры:**
 
 ```bash
-# Только MR и issue (~27 тулзов вместо 76)
+# Только MR и issue (27 тулзов вместо 77)
 claude mcp add gitflic --env GITFLIC_TOKEN=xxxx \
   --env GITFLIC_MCP_GROUPS=mr,issue -- npx -y gitflic-cli-mcp
 
 # Read-only агент для код-ревью (только тулзы без мутаций)
 GITFLIC_MCP_READONLY=1 npx -y gitflic-cli-mcp
 
-# Может всё, кроме удаления (69 тулзов: создаёт/правит/мёрджит — но не удаляет)
+# Может всё, кроме удаления (70 тулзов: создаёт/правит/мёрджит — но не удаляет)
 GITFLIC_MCP_NO_DESTRUCTIVE=1 npx -y gitflic-cli-mcp
 
 # Точный набор из четырёх тулзов
