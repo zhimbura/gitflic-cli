@@ -6,6 +6,15 @@ description: "История изменений gitflic-cli и MCP-сервер�
 
 Все значимые изменения в `gitflic-cli`. Формат — приближённый к [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.3.6 + gitflic-cli-mcp 0.4.3] — 2026-10-08
+
+Конфиг на Windows, имена веток MR и причина ошибки GitFlic.
+
+- **Конфиг и токен на Windows.** Путь строился от `process.env.HOME`, а на Windows его нет: CLI создавал каталог `~` в текущей папке, и токен терялся при смене каталога. Теперь путь берётся из `os.homedir()`. На macOS и Linux ничего не меняется. Спасибо [sv99](https://gitflic.ru/project/tikhon/gitflic-cli/merge-request/1). Добавлены шимы `bin/gitflic.cmd` и `bin/gitflic.ps1`, сборка больше не требует `cp` и `gzip`.
+- **MR показывал хеш коммита вместо имени ветки** — в `mr view`, `mr list`, TUI и в MCP (`gitflic_mr_view`, `gitflic_mr_list`). Из-за этого фильтры `sourceBranch` / `targetBranch` в MCP не находили ничего.
+- **Ошибка GitFlic больше не пустая.** Вместо `HTTP 404  — ` CLI печатает читаемый текст или имя исключения (`BranchNotFoundException`) и поля из `errors[]` для 422.
+- Пин MCP на CLI теперь `0.3.6`.
+
 ## [gitflic-cli-mcp 0.4.2] — 2026-07-17
 
 Проблема с авторством и доставкой фиксов. Релиз только MCP-пакета, CLI остаётся 0.3.5.

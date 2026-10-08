@@ -1,5 +1,20 @@
 # Changelog
 
+## gitflic-cli 0.3.6 + gitflic-cli-mcp 0.4.3 — 2026-10-08 — fix: конфиг на Windows, имена веток MR, причина ошибки GitFlic
+
+**CLI `gitflic` 0.3.6:**
+- **Конфиг и токен на Windows.** Путь строился от `process.env.HOME`, а на Windows его нет: вместо `~/.config` CLI создавал каталог с именем `~` в текущей папке, и сохранённый токен терялся при смене каталога. Теперь путь берётся из `os.homedir()` (`lib/config.mjs`, `lib/cache.mjs`). На macOS и Linux ничего не меняется: `os.homedir()` читает `$HOME`. Спасибо [sv99](https://gitflic.ru/project/tikhon/gitflic-cli/merge-request/1).
+- **Сборка без внешних утилит.** `scripts/build.mjs` копирует файлы через `fs.cpSync` и собирает архив одним `tar -czf`, без `cp` и `gzip`. Пропуск `bash -n` на win32. Новые шимы для Windows: `bin/gitflic.cmd` и `bin/gitflic.ps1`.
+- **Тест `secret.test.mjs` пропускается на win32**: там нет POSIX-прав `chmod 0600`.
+- **`mr view` / `mr list` / TUI показывали хеш коммита вместо имени ветки.** У MR GitFlic кладёт имя ветки в `id`, а в `alias` — хеш. Теперь выводится имя (`windows_config_store`, `main`). Общий хелпер `branchName()` в `lib/format.mjs`.
+- **Ошибка GitFlic больше не пустая.** Раньше `HTTP 404  — ` не говорило, что случилось. Теперь CLI печатает читаемый `title`, а если там i18n-ключ — имя исключения (`BranchNotFoundException`), и добавляет поля из `errors[]` для 422. Так нашлась причина 404 на `mr comment` для MR из форка: сервер ищет ветку форка в целевом проекте.
+
+**MCP `gitflic-cli-mcp` 0.4.3:**
+- **`gitflic_mr_view` / `gitflic_mr_list` отдавали хеши вместо веток**, а фильтры `sourceBranch` / `targetBranch` не находили ничего (`main` не совпадал с хешем). Проекция `slim.mjs` берёт имя ветки из `id`. Регрессионные тесты.
+- Пин `gitflic-cli` теперь `0.3.6`.
+
+> Известное ограничение GitFlic: комментарий и слияние через REST для MR из форка отвечают 404/403 (сервер ищет ветку форка в целевом проекте). Это сервер, не CLI.
+
 ## gitflic-cli-mcp 0.4.2 — 2026-07-17 — fix: MCP приписывал каждую проблему владельцу проекта; пин CLI, чтобы фиксы доезжали
 
 > Релиз только MCP-пакета. CLI `gitflic-cli` без изменений — остаётся 0.3.5.
