@@ -226,7 +226,7 @@ export default defineConfig({
             operatingSystem: "Linux, macOS, Windows",
             url: `${HOSTNAME}/`,
             downloadUrl: `${HOSTNAME}/downloads/`,
-            softwareVersion: "0.3.5",
+            softwareVersion: "0.3.6",
             description:
               "Консольный клиент (CLI) для REST API GitFlic — 100% покрытие, ноль зависимостей, MCP-сервер для AI-агентов.",
             featureList: [
