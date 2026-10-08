@@ -73,6 +73,12 @@ const slimCommit = (c, { full = false } = {}) => ({
 const slimLastCommit = (c) =>
   c ? { hash: c.hash, shortMessage: c.shortMessage, author: userName(c.user) || c.authorIdent?.name, date: c.authorIdent?.when ?? c.createdAt } : undefined;
 
+// A branch reference on a merge request. `id` is the branch NAME; `alias` is
+// the tip commit hash (e.g. alias "83958910…" for id "windows_config_store"),
+// so reading alias first reported hashes instead of names and made the
+// sourceBranch/targetBranch list filters match nothing.
+const branchName = (b) => (b && typeof b === "object" ? (b.id || b.title || b.alias) : b);
+
 const P = {
   issue: (i) => ({
     localId: i.localId, id: i.id, title: i.title,
@@ -97,8 +103,8 @@ const P = {
     localId: m.localId, id: m.id, title: m.title,
     status: statusId(m.status),
     author: userName(m.createdBy) || userName(m.author),
-    sourceBranch: m.sourceBranch?.alias || m.sourceBranch?.id || m.sourceBranch,
-    targetBranch: m.targetBranch?.alias || m.targetBranch?.id || m.targetBranch,
+    sourceBranch: branchName(m.sourceBranch),
+    targetBranch: branchName(m.targetBranch),
     ...(m.canMerge !== undefined ? { canMerge: m.canMerge } : {}),
     ...(m.hasConflicts !== undefined ? { hasConflicts: m.hasConflicts } : {}),
     createdAt: m.createdAt, ...(m.updatedAt ? { updatedAt: m.updatedAt } : {}),
@@ -197,11 +203,10 @@ function listOf(data) {
 // ---- client-side list filters (run on RAW items, BEFORE projection) ----------
 // GitFlic exposes almost no server-side list filters, so the slim layer filters
 // the (auto-paginated) full set. Must read RAW items so labels[].title /
-// assignedUsers[].username / branch.alias are still present to match on.
+// assignedUsers[].username / branch.id are still present to match on.
 const ci = (s) => String(s ?? "").toLowerCase();
 const globToRe = (g) =>
   new RegExp("^" + String(g).split("*").map((s) => s.replace(/[.+?^${}()|[\]\\]/g, "\\$&")).join(".*") + "$", "i");
-const branchName = (b) => (b && typeof b === "object" ? (b.alias || b.id) : b);
 
 export const FILTER_KEYS = [
   "label", "assignee", "author", "status", "q", "name", "tag", "event",

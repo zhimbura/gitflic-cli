@@ -245,3 +245,37 @@ describe("applyListFilters — author", () => {
     expect(applyListFilters(items, { author: "grace" }).map((i) => i.id)).toEqual(["b"]);
   });
 });
+
+// Regression: on a merge request GitFlic sends branch `id` = the NAME and
+// `alias` = the tip commit HASH. Reading alias first made the MCP report
+// "83958910…" instead of "windows_config_store" and made branch filters match nothing.
+describe("merge request branches — name, not commit hash", () => {
+  const branch = (name, hash) => ({ id: name, title: name, hash, alias: hash, ownerAlias: null, isDeleted: false });
+  const rawMr = () => ({
+    id: "uuid-1",
+    localId: 1,
+    title: "Windows config",
+    status: { id: "OPENED", title: "Открыт", color: "info" },
+    sourceBranch: branch("windows_config_store", "83958910f4cc32eabe0e9309c573fe973b367b7a"),
+    targetBranch: branch("main", "ba415efa4b569c1f09c2ddaf8caa884e1874372d"),
+  });
+
+  it("slimResult projects branch names for mr view", () => {
+    const out = slimResult("gitflic_mr_view", rawMr(), {}, {});
+    expect(out.sourceBranch).toBe("windows_config_store");
+    expect(out.targetBranch).toBe("main");
+  });
+
+  it("targetBranch / sourceBranch filters match the branch name", () => {
+    const items = [rawMr()];
+    expect(applyListFilters(items, { targetBranch: "main" })).toHaveLength(1);
+    expect(applyListFilters(items, { sourceBranch: "windows_config" })).toHaveLength(1);
+    expect(applyListFilters(items, { targetBranch: "develop" })).toHaveLength(0);
+  });
+
+  it("still accepts a plain string branch and an alias-only object", () => {
+    const out = slimResult("gitflic_mr_view", { localId: 2, sourceBranch: "feat/x", targetBranch: { alias: "main" } }, {}, {});
+    expect(out.sourceBranch).toBe("feat/x");
+    expect(out.targetBranch).toBe("main");
+  });
+});
