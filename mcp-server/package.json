@@ -46,7 +46,7 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0",
-    "gitflic-cli": "0.3.5",
+    "gitflic-cli": "0.3.6",
     "zod": "^3.25.76"
   }
 }

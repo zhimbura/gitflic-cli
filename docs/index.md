@@ -60,6 +60,8 @@ gitflic mr create --title "Fix login" --to main
 ```
 gitflic-cli/
 ├── bin/gitflic              # bash-шим → node lib/gitflic.mjs
+├── bin/gitflic.cmd          # Windows .cmd-шим → node lib/gitflic.mjs
+├── bin/gitflic.ps1          # PowerShell-шим → node lib/gitflic.mjs
 ├── lib/
 │   ├── gitflic.mjs          # диспетчер команд
 │   ├── http.mjs             # fetch + retry + parseArgs + resolveToken + httpText/httpDownload/httpUploadFile

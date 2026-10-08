@@ -161,6 +161,8 @@ claude mcp add gitflic --env GITFLIC_TOKEN=xxxx -- npx -y gitflic-cli-mcp
 ```
 gitflic-cli/
 ├── bin/gitflic              # bash-шим → node lib/gitflic.mjs
+├── bin/gitflic.cmd          # Windows .cmd-шим → node lib/gitflic.mjs
+├── bin/gitflic.ps1          # PowerShell-шим → node lib/gitflic.mjs
 ├── lib/
 │   ├── gitflic.mjs          # диспетчер команд
 │   ├── http.mjs             # fetch + retry + httpText/httpDownload/httpUploadFile
