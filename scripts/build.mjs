@@ -17,18 +17,16 @@
 
 import { execFileSync, spawnSync } from "node:child_process";
 import {
+  cpSync,
   existsSync,
   mkdirSync,
   readFileSync,
   readdirSync,
   rmSync,
   statSync,
-  writeFileSync,
 } from "node:fs";
-import { createWriteStream } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { createGzip } from "node:zlib";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 const ROOT = resolve(__dirname, "..");
@@ -123,12 +121,14 @@ if (existsSync(join(ROOT, "package-lock.json"))) {
   ok("package-lock.json valid");
 }
 
-for (const s of ["install.sh", "uninstall.sh"]) {
-  const p = join(ROOT, s);
-  if (!existsSync(p)) continue;
-  const r = spawnSync("bash", ["-n", p], { stdio: "pipe" });
-  if (r.status !== 0) fail(`${s} bash parse error`);
-  ok(`${s} parses`);
+if (process.platform !== "win32") {
+  for (const s of ["install.sh", "uninstall.sh"]) {
+    const p = join(ROOT, s);
+    if (!existsSync(p)) continue;
+    const r = spawnSync("bash", ["-n", p], { stdio: "pipe" });
+    if (r.status !== 0) fail(`${s} bash parse error`);
+    ok(`${s} parses`);
+  }
 }
 
 // ---- 2. test -------------------------------------------------------------
@@ -177,26 +177,29 @@ if (SKIP_BUNDLE) {
     if (entry.name === "__tests__") continue;
     const src = join(ROOT, "lib", entry.name);
     const dest = join(libStaging, entry.name);
-    spawnSync("cp", ["-R", src, dest], { stdio: "inherit" });
+    // fs.cpSync — portable (no external `cp`; Windows has no cp.exe).
+    cpSync(src, dest, { recursive: true });
+  }
+  // Guard against a silently-empty stage (the old `spawnSync("cp")` swallowed
+  // ENOENT on Windows and packaged a lib-less artifact).
+  if (readdirSync(libStaging).length === 0) {
+    fail("staged lib/ is empty — copy step produced nothing");
   }
   for (const item of include) {
     const src = join(ROOT, item);
     if (!existsSync(src)) continue;
     const dest = join(stageDir, item);
     mkdirSync(dirname(dest), { recursive: true });
-    spawnSync("cp", ["-R", src, dest], { stdio: "inherit" });
+    cpSync(src, dest, { recursive: true });
   }
   ok(`staged ${include.filter((x) => existsSync(join(ROOT, x))).length} entries`);
 
   const tarPath = join(DIST, `gitflic-cli-${version}.tar`);
   const gzPath = `${tarPath}.gz`;
-  const tar = spawnSync("tar", ["-cf", tarPath, "-C", DIST, `gitflic-cli-${version}`], {
+  const tar = spawnSync("tar", ["-czf", gzPath, "-C", DIST, `gitflic-cli-${version}`], {
     stdio: "inherit",
   });
   if (tar.status !== 0) fail("tar failed");
-  // gzip in one shot
-  const gz = spawnSync("gzip", ["-f", tarPath], { stdio: "inherit" });
-  if (gz.status !== 0) fail("gzip failed");
 
   const size = statSync(gzPath).size;
   const sizeKb = (size / 1024).toFixed(1);
