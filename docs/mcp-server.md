@@ -21,13 +21,20 @@ mcp-server/
 
 ## Установка и запуск
 
-Сервер опубликован в npm как `gitflic-cli-mcp` и запускается через `npx` — ставить ничего не нужно:
+Сервер опубликован в npm как `gitflic-cli-mcp`. Глобальная установка даёт команду `gitflic-mcp`:
+
+```bash
+npm i -g gitflic-cli-mcp
+GITFLIC_TOKEN="xxxx" gitflic-mcp
+```
+
+Без установки — через `npx`: он сам подтянет `gitflic-cli-mcp`, его зависимости (`@modelcontextprotocol/sdk`, `zod`) и сам CLI `gitflic-cli` (кеш npx может держать старую версию — при подозрениях `npx -y gitflic-cli-mcp@latest`):
 
 ```bash
 GITFLIC_TOKEN="xxxx" npx -y gitflic-cli-mcp
 ```
 
-`npx` сам подтянет `gitflic-cli-mcp` и его зависимости (`@modelcontextprotocol/sdk`, `zod`) и сам CLI `gitflic-cli`. Из исходников — то же самое вручную:
+Из исходников — то же самое вручную:
 
 ```bash
 cd mcp-server && npm install
@@ -60,8 +67,7 @@ claude mcp add gitflic --env GITFLIC_TOKEN=xxxxxxxx -- npx -y gitflic-cli-mcp
 {
   "mcpServers": {
     "gitflic": {
-      "command": "npx",
-      "args": ["-y", "gitflic-cli-mcp"],
+      "command": "gitflic-mcp",
       "env": {
         "GITFLIC_TOKEN": "xxxxxxxx"
       }
@@ -92,7 +98,7 @@ claude mcp add gitflic --env GITFLIC_TOKEN=xxxxxxxx -- npx -y gitflic-cli-mcp
 
 ## Ограничение набора тулзов (экономия контекста)
 
-Все 77 тулзов уходят хосту по `tools/list` ещё до первого вызова — это ~6K токенов «налога» на контекст модели. Если агенту нужны не все, набор сужается через **env-переменные** — в том же `env`-блоке конфига, где `GITFLIC_TOKEN`:
+Все 77 тулзов уходят хосту по `tools/list` ещё до первого вызова — это ~6K токенов «налога» на контекст модели. Если агенту нужны не все, набор сужается через **env-переменные** — в том же `env`-блоке конфига, где `GITFLIC_TOKEN`, — или через **флаги командной строки** (см. ниже, дублируют часть переменных):
 
 | Переменная | Значение | Что делает |
 |---|---|---|
@@ -105,6 +111,17 @@ claude mcp add gitflic --env GITFLIC_TOKEN=xxxxxxxx -- npx -y gitflic-cli-mcp
 Все опциональны; без них регистрируются все 77. Неизвестные имена/группы не валят старт — сервер пишет `WARN` в stderr и игнорирует их. Регистр в списках не важен.
 
 **Порядок применения:** базовый набор (`GITFLIC_MCP_TOOLS` → иначе `GITFLIC_MCP_GROUPS` → иначе все) → пересечение с read-only при `GITFLIC_MCP_READONLY` (накладывается и на allowlist, так что write-тул не «протечёт» в read-only режим) → вычитание деструктивных при `GITFLIC_MCP_NO_DESTRUCTIVE` → вычитание `GITFLIC_MCP_EXCLUDE` в конце.
+
+**То же самое — флагами командной строки.** Часть переменных дублируется флагами `server.mjs` (формы `--flag value` и `--flag=value`; у булевых есть явное выключение — `--readonly=false`):
+
+| Флаг | Эквивалент env | Пример |
+|---|---|---|
+| `--groups <list>` | `GITFLIC_MCP_GROUPS` | `gitflic-mcp --groups mr,issue` |
+| `--readonly` | `GITFLIC_MCP_READONLY` | `gitflic-mcp --readonly` |
+| `--no-destructive` | `GITFLIC_MCP_NO_DESTRUCTIVE` | `gitflic-mcp --no-destructive` |
+| `--output slim\|full` | `GITFLIC_MCP_OUTPUT` | `gitflic-mcp --output full` |
+
+**Приоритет: флаг > env-переменная** — env-путь остаётся полностью рабочим, флаги лишь перекрывают его при старте (явный `--output` заодно гасит env-алиас `GITFLIC_MCP_RAW`). Остальные переменные (`GITFLIC_MCP_TOOLS`, `GITFLIC_MCP_EXCLUDE`, `GITFLIC_MCP_RAW`) и `GITFLIC_TOKEN` — только через env. `gitflic-mcp --help` печатает справку в stderr (stdout зарезервирован под JSON-RPC); неизвестный флаг — `WARN` и старт как обычно, не падение.
 
 **`GITFLIC_MCP_NO_DESTRUCTIVE=1`** жёстко убирает (на уровне регистрации, не через approval-prompt) **только удаляющие** тулзы — 7 шт. на `_delete`: `issue_delete`, `issue_comments_delete`, `mr_discuss_delete`, `branch_delete`, `branch_protection_delete`, `release_delete`, `webhook_delete`. Остальные мутации (`*_create` / `*_edit` / `*_close` / `gitflic_mr_merge`) остаются и идут через подтверждение хоста (`destructiveHint:true`). Это надёжнее approval'а, который можно прокликать.
 
@@ -138,6 +155,19 @@ GITFLIC_MCP_READONLY=1 npx -y gitflic-cli-mcp
 GITFLIC_MCP_NO_DESTRUCTIVE=1 npx -y gitflic-cli-mcp
 ```
 
+Те же сценарии флагами (вместо env):
+
+```bash
+# Только MR и issue
+gitflic-mcp --groups mr,issue
+
+# Read-only агент (39 read-only тулзов)
+gitflic-mcp --readonly
+
+# Может всё, кроме удаления (70 тулзов)
+gitflic-mcp --no-destructive
+```
+
 ```json
 {
   "mcpServers": {
@@ -154,6 +184,20 @@ GITFLIC_MCP_NO_DESTRUCTIVE=1 npx -y gitflic-cli-mcp
 }
 ```
 
+…или те же настройки флагами в `args` (приоритет у флагов):
+
+```json
+{
+  "mcpServers": {
+    "gitflic": {
+      "command": "gitflic-mcp",
+      "args": ["--groups", "mr,issue", "--readonly"],
+      "env": { "GITFLIC_TOKEN": "xxxx" }
+    }
+  }
+}
+```
+
 Полный список всех 77 тулзов с пометкой R/W — в [README MCP-сервера](https://gitflic.ru/project/tikhon/gitflic-cli/blob?file=mcp-server%2FREADME.md). Совет: можно держать два подключения — `gitflic` (полный) и `gitflic-ro` (`GITFLIC_MCP_READONLY=1`), либо класть конфиг в проектный `.mcp.json` / `.cursor/mcp.json`, чтобы в каждом репозитории грузились свои группы.
 
 ## Сжатие ответов (экономия токенов)
@@ -163,6 +207,7 @@ GitFlic REST API отдаёт «сырой» JSON с кучей бесполез
 | Переменная / аргумент | Значения | Эффект |
 | --- | --- | --- |
 | `GITFLIC_MCP_OUTPUT` | `slim` (по умолч.) / `full` (=`raw`) | глобальный режим: `full` = старый сырой ответ один-в-один |
+| флаг `--output` | `slim` / `full` / `raw` | то же, флагом командной строки; побеждает env (в т.ч. алиас `GITFLIC_MCP_RAW`) |
 | `GITFLIC_MCP_RAW` | `1` / `true` / `yes` / `on` | то же, что `OUTPUT=full` (булев алиас, побеждает при конфликте) |
 | аргумент `raw: true` | на **любом** тулзе | вернуть полный несжатый ответ для **одного** вызова |
 | аргумент `fields: [...]` | на read/list тулзах | вернуть только указанные поля (+ id-ключи) |

@@ -13,13 +13,20 @@ MCP-сервер — это **тонкая прослойка**: каждая т
 
 ## Установка
 
-Ставить ничего не нужно — запуск через `npx`:
+Глобальная установка — появляется команда `gitflic-mcp`:
+
+```bash
+npm i -g gitflic-cli-mcp
+GITFLIC_TOKEN="xxxx" gitflic-mcp
+```
+
+Без установки — через `npx`: подтянет пакет, его зависимости и сам CLI `gitflic-cli`. Кеш npx может держать старую версию — при подозрениях `npx -y gitflic-cli-mcp@latest`:
 
 ```bash
 GITFLIC_TOKEN="xxxx" npx -y gitflic-cli-mcp
 ```
 
-`npx` подтянет пакет, его зависимости и сам CLI `gitflic-cli`. Из исходников — вручную:
+Из исходников — вручную:
 
 ```bash
 cd mcp-server && npm install
@@ -43,6 +50,12 @@ export GITFLIC_TOKEN="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
 ### Claude Code
 
 ```bash
+claude mcp add gitflic --env GITFLIC_TOKEN=xxxxxxxx -- gitflic-mcp
+```
+
+Или через npx, без установки:
+
+```bash
 claude mcp add gitflic --env GITFLIC_TOKEN=xxxxxxxx -- npx -y gitflic-cli-mcp
 ```
 
@@ -52,21 +65,24 @@ claude mcp add gitflic --env GITFLIC_TOKEN=xxxxxxxx -- npx -y gitflic-cli-mcp
 {
   "mcpServers": {
     "gitflic": {
-      "command": "npx",
-      "args": ["-y", "gitflic-cli-mcp"],
+      "command": "gitflic-mcp",
       "env": { "GITFLIC_TOKEN": "xxxxxxxx" }
     }
   }
 }
 ```
 
+(npx-вариант: `"command": "npx", "args": ["-y", "gitflic-cli-mcp"]`.)
+
 ### Cursor (`~/.cursor/mcp.json`)
 
 Та же структура. Перезапустите хост. (Из исходников: `"command": "node", "args": ["/absolute/path/to/gitflic-cli/mcp-server/server.mjs"]`.)
 
+> **Windows:** npm ставит бин как `.cmd`-шим — если хост не находит `gitflic-mcp`, укажите `"command": "cmd", "args": ["/c", "gitflic-mcp"]` (для npx — `["/c", "npx", "-y", "gitflic-cli-mcp"]`).
+
 ## Ограничение набора тулзов (экономия контекста)
 
-Все 77 тулзов уходят хосту по `tools/list` ещё до первого вызова — это ~6K токенов «налога» на контекст модели. Если агенту нужны не все, набор можно сузить через **env-переменные** — прописываются в том же `env`-блоке конфига, где `GITFLIC_TOKEN` (своего конфиг-файла у сервера нет, он читает `process.env` при старте).
+Все 77 тулзов уходят хосту по `tools/list` ещё до первого вызова — это ~6K токенов «налога» на контекст модели. Если агенту нужны не все, набор можно сузить через **env-переменные** — прописываются в том же `env`-блоке конфига, где `GITFLIC_TOKEN` (своего конфиг-файла у сервера нет, он читает `process.env` при старте), — или через **флаги командной строки** (см. ниже, дублируют часть переменных).
 
 | Переменная | Значение | Что делает |
 |---|---|---|
@@ -86,6 +102,17 @@ claude mcp add gitflic --env GITFLIC_TOKEN=xxxxxxxx -- npx -y gitflic-cli-mcp
 4. `GITFLIC_MCP_EXCLUDE` — вычитается в самом конце (всегда побеждает).
 
 Значения списков — через запятую или пробел; регистр не важен ни для групп, ни для имён тулзов (имена всегда в нижнем регистре).
+
+**То же самое — флагами командной строки.** Часть переменных дублируется флагами `server.mjs` (формы `--flag value` и `--flag=value`; у булевых есть явное выключение — `--readonly=false`):
+
+| Флаг | Эквивалент env | Пример |
+|---|---|---|
+| `--groups <list>` | `GITFLIC_MCP_GROUPS` | `gitflic-mcp --groups mr,issue` |
+| `--readonly` | `GITFLIC_MCP_READONLY` | `gitflic-mcp --readonly` |
+| `--no-destructive` | `GITFLIC_MCP_NO_DESTRUCTIVE` | `gitflic-mcp --no-destructive` |
+| `--output slim\|full` | `GITFLIC_MCP_OUTPUT` | `gitflic-mcp --output full` |
+
+**Приоритет: флаг > env-переменная** — env-путь остаётся полностью рабочим, флаги лишь перекрывают его при старте (явный `--output` заодно гасит env-алиас `GITFLIC_MCP_RAW`). Остальные переменные (`GITFLIC_MCP_TOOLS`, `GITFLIC_MCP_EXCLUDE`, `GITFLIC_MCP_RAW`) и `GITFLIC_TOKEN` — только через env. `gitflic-mcp --help` печатает справку в stderr (stdout зарезервирован под JSON-RPC); неизвестный флаг — `WARN` и старт как обычно, не падение.
 
 **Допустимые значения `GITFLIC_MCP_GROUPS`** (группа = первый сегмент имени после `gitflic_`):
 
@@ -133,6 +160,22 @@ GITFLIC_MCP_TOOLS="gitflic_mr_list,gitflic_mr_view,gitflic_mr_diff,gitflic_mr_cr
   npx -y gitflic-cli-mcp
 ```
 
+Те же сценарии флагами (вместо env):
+
+```bash
+# Только MR и issue
+gitflic-mcp --groups mr,issue
+
+# Read-only агент
+gitflic-mcp --readonly
+
+# Всё, кроме удаления
+gitflic-mcp --no-destructive
+
+# Комбо + сырые ответы вместо slim
+gitflic-mcp --groups mr,issue --readonly --output full
+```
+
 В JSON-конфиге это тот же `env`-блок:
 
 ```json
@@ -151,6 +194,20 @@ GITFLIC_MCP_TOOLS="gitflic_mr_list,gitflic_mr_view,gitflic_mr_diff,gitflic_mr_cr
 }
 ```
 
+…или те же настройки флагами в `args` (приоритет у флагов):
+
+```json
+{
+  "mcpServers": {
+    "gitflic": {
+      "command": "gitflic-mcp",
+      "args": ["--groups", "mr,issue", "--readonly"],
+      "env": { "GITFLIC_TOKEN": "xxxx" }
+    }
+  }
+}
+```
+
 > Можно поднять один и тот же сервер дважды под разными именами — напр. `gitflic` (полный) и `gitflic-ro` (`GITFLIC_MCP_READONLY=1`) — и держать оба подключёнными. Либо класть конфиг в проектный `.mcp.json` / `.cursor/mcp.json`, чтобы в каждом репозитории грузились свои группы.
 
 ## Сжатие ответов (экономия токенов)
@@ -160,6 +217,7 @@ GitFlic REST API отдаёт «сырой» JSON с кучей бесполез
 | Переменная / аргумент | Значения | Эффект |
 | --- | --- | --- |
 | `GITFLIC_MCP_OUTPUT` | `slim` (по умолч.) / `full` (=`raw`) | глобальный режим: `full` = старый сырой ответ один-в-один |
+| флаг `--output` | `slim` / `full` / `raw` | то же, флагом командной строки; побеждает env (в т.ч. алиас `GITFLIC_MCP_RAW`) |
 | `GITFLIC_MCP_RAW` | `1`/`true`/`yes`/`on` | то же, что `OUTPUT=full` (булев алиас, побеждает при конфликте) |
 | аргумент `raw: true` | на **любом** тулзе | вернуть полный несжатый ответ для **одного** вызова — если модели не хватило поля в slim-виде |
 | аргумент `fields: [...]` | на read/list тулзах | вернуть только указанные поля (+ id-ключи) |

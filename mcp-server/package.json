@@ -1,6 +1,6 @@
 {
   "name": "gitflic-cli-mcp",
-  "version": "0.4.3",
+  "version": "0.5.0",
   "description": "MCP server wrapping the gitflic CLI — exposes the GitFlic REST API as typed tools for AI agents (Claude Code, Cursor, etc.)",
   "type": "module",
   "bin": {
@@ -8,6 +8,7 @@
   },
   "files": [
     "server.mjs",
+    "args.mjs",
     "runner.mjs",
     "tools.mjs",
     "filter.mjs",
