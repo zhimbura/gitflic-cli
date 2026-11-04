@@ -29,7 +29,8 @@
     "lint": "node scripts/build.mjs --no-test --no-bundle",
     "prepublishOnly": "node scripts/build.mjs --no-bundle",
     "publish:dry": "node scripts/publish.mjs --dry-run",
-    "publish:npm": "node scripts/publish.mjs"
+    "publish:npm": "node scripts/publish.mjs",
+    "docs:indexnow": "node scripts/indexnow.mjs"
   },
   "keywords": [
     "gitflic",
