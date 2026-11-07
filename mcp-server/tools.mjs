@@ -745,8 +745,26 @@ export const TOOLS = [
 
   // ===== project admin ====================================================
   {
+    name: "gitflic_project_list",
+    description: "List accessible projects, including team projects. Defaults to scope shared; filter by owner alias.",
+    inputSchema: { type: "object", properties: {
+      scope: { type: "string", enum: ["public", "my", "shared"], description: "Default shared includes projects you participate in." },
+      owner: { type: "string", description: "Owner alias, such as a team alias; used with scope shared." },
+      q: { type: "string", description: "Project name filter." },
+    } },
+    handler: a => {
+      const scope = a.scope || "shared";
+      if (a.owner && scope !== "shared") throw new Error("owner filter requires scope shared");
+      const argv = ["project", "list", "--scope", scope];
+      if (a.owner) argv.push("--q-owner", a.owner);
+      if (a.q) argv.push("--q", a.q);
+      return argv;
+    },
+    annotations: { title: "Project List", readOnlyHint: true, destructiveHint: false, openWorldHint: true },
+  },
+  {
     name: "gitflic_project_list_my",
-    description: "List projects where the current user is owner/member.",
+    description: "List projects owned by the current user. Use gitflic_project_list with scope shared for team and member projects.",
     inputSchema: { type: "object", properties: {} },
     handler: () => ["project", "list", "--scope", "my"],
     annotations: {
@@ -1685,6 +1703,10 @@ const FILTER_PROPS = {
     event: STR("Keep only webhooks subscribed to this event (e.g. MERGE)."),
     limit: NUM("Return at most N."),
   },
+  gitflic_project_list: {
+    language: STR("Project language."), private: BOOL("Filter visibility."),
+    sort: STR("Sort field."), limit: NUM("Return at most N matched projects."),
+  },
   gitflic_project_list_my: {
     q: STR("Name/text filter (forwarded to GitFlic server-side, plus client match)."),
     language: STR("Keep only projects in this language."),
@@ -1730,10 +1752,41 @@ for (const t of TOOLS) {
       const argv = orig(a);
       // project_list_my: GitFlic supports server-side ?q= for project listings.
       if (t.name === "gitflic_project_list_my" && a.q && !argv.includes("--q")) argv.push("--q", String(a.q));
-      if (needsAll(a) && !argv.includes("--all")) argv.push("--all");
+      if (needsAll(a) && a.all !== false && a.page === undefined && !argv.includes("--all")) argv.push("--all");
       return argv;
     };
   }
+}
+
+// These collections support explicit paging and complete retrieval.
+// Default to all pages unless a page is explicitly selected.
+for (const tool of TOOLS.filter(t => [
+  "gitflic_project_list", "gitflic_project_list_my",
+  "gitflic_mr_diff", "gitflic_mr_discuss_list",
+].includes(t.name))) {
+  Object.assign(tool.inputSchema.properties, {
+    page: { type: "integer", description: "Zero-based page index; selects one page unless all is true." },
+    size: { type: "integer", description: "Requested page size; server limits are respected." },
+    all: { type: "boolean", description: "Fetch all pages. Defaults to true when page is omitted." },
+  });
+  if (tool.name === "gitflic_mr_diff") {
+    tool.inputSchema.properties.expand = { type: "boolean", description: "Expand collapsed text diffs; defaults to true." };
+  }
+  const original = tool.handler;
+  tool.handler = (args = {}) => {
+    const argv = original(args);
+    if (args.page !== undefined) argv.push("--page", String(args.page));
+    if (args.size !== undefined) argv.push("--size", String(args.size));
+    if (args.all === false) {
+      const index = argv.indexOf("--all");
+      if (index >= 0) argv.splice(index, 1);
+      argv.push("--no-all");
+    } else if ((args.all === true || args.page === undefined) && !argv.includes("--all")) {
+      argv.push("--all");
+    }
+    if (args.expand === false) argv.push("--no-expand");
+    return argv;
+  };
 }
 
 // Build the JSON Schema for ListTools request, just to help debugging.

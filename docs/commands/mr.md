@@ -33,8 +33,18 @@ gitflic mr view 42 --project FerdBur/wave
 
 ```bash
 gitflic mr diff 42 --project FerdBur/wave
-# File-level diff: список файлов с добавленными/удалёнными строками.
+# Полный дифф: все страницы, включая содержимое свёрнутых текстовых файлов.
+
+gitflic mr diff 42 --project FerdBur/wave --page 1 --size 5
+gitflic mr diff 42 --project FerdBur/wave --no-expand --format json
 ```
+
+По умолчанию CLI загружает все страницы. `--page N` выбирает одну страницу
+(нумерация с нуля), `--size N` задаёт её размер. `--all` включает полный обход,
+`--no-all` оставляет одну страницу. `--no-expand` пропускает дополнительные
+запросы содержимого свёрнутых файлов. JSON содержит признаки полноты
+`_pagination.complete`, `_pagination.nextPage` и `_diff.complete`.
+Если коммиты MR меняются во время загрузки, запрос завершается ошибкой.
 
 ### by-commit
 
@@ -110,7 +120,8 @@ gitflic mr comment 42 --project FerdBur/wave "Fix this" \
 ### discuss (обсуждения / threaded comments)
 
 ```bash
-gitflic mr discuss list 42 --project FerdBur/wave
+gitflic mr discuss list 42 --project FerdBur/wave                 # все страницы
+gitflic mr discuss list 42 --project FerdBur/wave --page 1 --size 10
 gitflic mr discuss get 42 <discussionUuid> --project FerdBur/wave        # один тред целиком
 gitflic mr discuss reply 42 <discussionUuid> "My reply" --project FerdBur/wave
 gitflic mr discuss resolve 42 <discussionUuid> --project FerdBur/wave

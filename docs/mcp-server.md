@@ -17,7 +17,7 @@ mcp-server/
 └── __tests__/              # vitest
 ```
 
-77 инструментов — каждый маппится 1-в-1 на подкоманду CLI.
+78 инструментов — каждый маппится 1-в-1 на подкоманду CLI.
 
 ## Установка и запуск
 
@@ -98,7 +98,7 @@ claude mcp add gitflic --env GITFLIC_TOKEN=xxxxxxxx -- npx -y gitflic-cli-mcp
 
 ## Ограничение набора тулзов (экономия контекста)
 
-Все 77 тулзов уходят хосту по `tools/list` ещё до первого вызова — это ~6K токенов «налога» на контекст модели. Если агенту нужны не все, набор сужается через **env-переменные** — в том же `env`-блоке конфига, где `GITFLIC_TOKEN`, — или через **флаги командной строки** (см. ниже, дублируют часть переменных):
+Все 78 тулзов уходят хосту по `tools/list` ещё до первого вызова — это ~6K токенов «налога» на контекст модели. Если агенту нужны не все, набор сужается через **env-переменные** — в том же `env`-блоке конфига, где `GITFLIC_TOKEN`, — или через **флаги командной строки** (см. ниже, дублируют часть переменных):
 
 | Переменная | Значение | Что делает |
 |---|---|---|
@@ -108,7 +108,7 @@ claude mcp add gitflic --env GITFLIC_TOKEN=xxxxxxxx -- npx -y gitflic-cli-mcp
 | `GITFLIC_MCP_TOOLS` | список имён тулзов | явный allowlist (приоритет над `GROUPS`) |
 | `GITFLIC_MCP_EXCLUDE` | список имён тулзов | убрать конкретные тулзы (применяется последним) |
 
-Все опциональны; без них регистрируются все 77. Неизвестные имена/группы не валят старт — сервер пишет `WARN` в stderr и игнорирует их. Регистр в списках не важен.
+Все опциональны; без них регистрируются все 78. Неизвестные имена/группы не валят старт — сервер пишет `WARN` в stderr и игнорирует их. Регистр в списках не важен.
 
 **Порядок применения:** базовый набор (`GITFLIC_MCP_TOOLS` → иначе `GITFLIC_MCP_GROUPS` → иначе все) → пересечение с read-only при `GITFLIC_MCP_READONLY` (накладывается и на allowlist, так что write-тул не «протечёт» в read-only режим) → вычитание деструктивных при `GITFLIC_MCP_NO_DESTRUCTIVE` → вычитание `GITFLIC_MCP_EXCLUDE` в конце.
 
@@ -135,7 +135,7 @@ claude mcp add gitflic --env GITFLIC_TOKEN=xxxxxxxx -- npx -y gitflic-cli-mcp
 | `commit` | 4 | 4 / 0 |
 | `issue` | 12 | 4 / 8 |
 | `mr` | 15 | 5 / 10 |
-| `project` | 7 | 4 / 3 |
+| `project` | 8 | 5 / 3 |
 | `release` | 6 | 3 / 3 |
 | `tag` | 3 | 2 / 1 |
 | `user` | 5 | 5 / 0 |
@@ -144,14 +144,14 @@ claude mcp add gitflic --env GITFLIC_TOKEN=xxxxxxxx -- npx -y gitflic-cli-mcp
 > ⚠️ Группа `auth` содержит мутирующие тулзы (`_login` / `_logout` / `_switch` / `_bind` / `_unbind`) — они меняют локальный keychain/конфиг. Для «только проверка личности» добавь `GITFLIC_MCP_READONLY=1` или перечисли нужное через `GITFLIC_MCP_TOOLS`.
 
 ```bash
-# Только MR и issue (27 тулзов вместо 77)
+# Только MR и issue (27 тулзов вместо 78)
 claude mcp add gitflic --env GITFLIC_TOKEN=xxxx \
   --env GITFLIC_MCP_GROUPS=mr,issue -- npx -y gitflic-cli-mcp
 
-# Read-only агент для код-ревью (39 read-only тулзов)
+# Read-only агент для код-ревью (40 read-only тулзов)
 GITFLIC_MCP_READONLY=1 npx -y gitflic-cli-mcp
 
-# Может всё, кроме удаления (70 тулзов)
+# Может всё, кроме удаления (71 тулзов)
 GITFLIC_MCP_NO_DESTRUCTIVE=1 npx -y gitflic-cli-mcp
 ```
 
@@ -161,10 +161,10 @@ GITFLIC_MCP_NO_DESTRUCTIVE=1 npx -y gitflic-cli-mcp
 # Только MR и issue
 gitflic-mcp --groups mr,issue
 
-# Read-only агент (39 read-only тулзов)
+# Read-only агент (40 read-only тулзов)
 gitflic-mcp --readonly
 
-# Может всё, кроме удаления (70 тулзов)
+# Может всё, кроме удаления (71 тулзов)
 gitflic-mcp --no-destructive
 ```
 
@@ -198,7 +198,7 @@ gitflic-mcp --no-destructive
 }
 ```
 
-Полный список всех 77 тулзов с пометкой R/W — в [README MCP-сервера](https://gitflic.ru/project/tikhon/gitflic-cli/blob?file=mcp-server%2FREADME.md). Совет: можно держать два подключения — `gitflic` (полный) и `gitflic-ro` (`GITFLIC_MCP_READONLY=1`), либо класть конфиг в проектный `.mcp.json` / `.cursor/mcp.json`, чтобы в каждом репозитории грузились свои группы.
+Полный список всех 78 тулзов с пометкой R/W — в [README MCP-сервера](https://gitflic.ru/project/tikhon/gitflic-cli/blob?file=mcp-server%2FREADME.md). Совет: можно держать два подключения — `gitflic` (полный) и `gitflic-ro` (`GITFLIC_MCP_READONLY=1`), либо класть конфиг в проектный `.mcp.json` / `.cursor/mcp.json`, чтобы в каждом репозитории грузились свои группы.
 
 ## Сжатие ответов (экономия токенов)
 
@@ -218,7 +218,7 @@ GitFlic REST API отдаёт «сырой» JSON с кучей бесполез
 
 ## Примеры использования (в Claude Code)
 
-После подключения агент получает доступ к 77 тулам. Несколько типичных сценариев:
+После подключения агент получает доступ к 78 тулам. Несколько типичных сценариев:
 
 ```
 > Создай MR из текущей ветки в main с описанием из последнего коммита
@@ -257,7 +257,7 @@ MCP-сервер — **тонкая прослойка**: каждая тулз�
 
 ## Annotations: деструктивные операции требуют approval
 
-Все 77 тулов помечены MCP-аннотациями ([MCP 2025-06-18 spec](https://modelcontextprotocol.io/specification/2025-06-18/server/tools#toolannotations)):
+Все 78 тулов помечены MCP-аннотациями ([MCP 2025-06-18 spec](https://modelcontextprotocol.io/specification/2025-06-18/server/tools#toolannotations)):
 
 ```json
 {
@@ -334,6 +334,6 @@ node scripts/annotate-mcp-tools.mjs
 ## См. также
 
 - [Быстрый старт](quickstart.md) — установка и первые команды `gitflic`.
-- [Все команды](/commands/) — какие подкоманды стоят за 77 тулзами MCP.
+- [Все команды](/commands/) — какие подкоманды стоят за 78 тулзами MCP.
 - [ENV переменные](env.md) — `GITFLIC_TOKEN`, `GITFLIC_API_BASE` и настройки поведения.
 - [Аутентификация](/auth/) — как MCP-сервер получает токен из keychain.

@@ -43,7 +43,7 @@ const labelTitles = (ls) =>
 // are NOT here — they are only collapsed inside the per-entity projectors.
 const DENY = new Set([
   "avatar", "cover", "hexColor", "color", "icon",
-  "_links", "_embedded", "_pagination", "avatarRadius", "createdLogo", "logoUrl",
+  "_links", "_embedded", "avatarRadius", "createdLogo", "logoUrl",
 ]);
 export function deny(node) {
   if (Array.isArray(node)) return node.map(deny);
@@ -112,6 +112,9 @@ const P = {
     ...(m.description != null ? { description: m.description } : {}),
   }),
   discussion: (d) => ({
+    ...Object.fromEntries(["oldPath", "newPath", "oldLine", "newLine", "initialNewLine",
+      "baseCommit", "startCommit", "targetCommit", "rawMessage"]
+      .filter(k => k in (d.rootNote || d)).map(k => [k, (d.rootNote || d)[k]])),
     uuid: d.rootNote?.uuid ?? d.uuid,
     resolved: d.rootNote?.resolved ?? d.resolved,
     author: userName(d.rootNote?.author ?? d.author),
@@ -140,6 +143,7 @@ const P = {
   project: (p) => ({
     id: p.id, alias: p.alias, title: p.title,
     owner: p.owner?.alias || userName(p.owner) || p.owner,
+    ownerType: p.owner?.type,
     ...(p.defaultBranch ? { defaultBranch: p.defaultBranch } : {}),
     private: p.private,
     ...(p.language ? { language: p.language } : {}),
@@ -177,6 +181,7 @@ export const SHAPE = {
   gitflic_user_me: { single: P.user }, gitflic_auth: { single: P.user }, gitflic_user_get: { single: P.user },
   gitflic_user_projects: { list: P.project },
   gitflic_project_list_my: { list: P.project },
+  gitflic_project_list: { list: P.project },
   gitflic_project_get: { single: P.project }, gitflic_project_create: { single: P.project }, gitflic_project_edit: { single: P.project },
   gitflic_project_member_list: { list: P.member },
   gitflic_webhook_list: { list: P.webhook }, gitflic_webhook_get: { single: P.webhook }, gitflic_webhook_create: { single: P.webhook },
@@ -312,7 +317,7 @@ export function slimResult(toolName, result, args = {}, env = process.env) {
     const matched = items.length;
     const project = fields ? (it) => pickFields(it, fields) : (shape.list || ((x) => x));
     const slimmed = items.map((it) => deny(project(it))); // deny() = final cosmetic+secret sweep
-    const res = { items: slimmed, ...(lst.total != null ? { total: lst.total } : {}), returned: slimmed.length };
+    const res = { items: slimmed, ...(result._pagination ? { pagination: result._pagination, page: result.page } : {}), ...(lst.total != null ? { total: lst.total } : {}), returned: slimmed.length };
     if (lst.total != null && matched !== lst.total) res.matched = matched;
     return res;
   }

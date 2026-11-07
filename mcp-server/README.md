@@ -1,6 +1,6 @@
 # gitflic-cli MCP-сервер
 
-[Model Context Protocol](https://modelcontextprotocol.io/) сервер, оборачивающий CLI `gitflic` и отдающий **77 типизированных тулзов** поверх команд GitFlic REST для AI-агентов (Claude Code, Cursor и т.п.).
+[Model Context Protocol](https://modelcontextprotocol.io/) сервер, оборачивающий CLI `gitflic` и отдающий **78 типизированных тулзов** поверх команд GitFlic REST для AI-агентов (Claude Code, Cursor и т.п.).
 
 ## Что внутри
 
@@ -82,7 +82,7 @@ claude mcp add gitflic --env GITFLIC_TOKEN=xxxxxxxx -- npx -y gitflic-cli-mcp
 
 ## Ограничение набора тулзов (экономия контекста)
 
-Все 77 тулзов уходят хосту по `tools/list` ещё до первого вызова — это ~6K токенов «налога» на контекст модели. Если агенту нужны не все, набор можно сузить через **env-переменные** — прописываются в том же `env`-блоке конфига, где `GITFLIC_TOKEN` (своего конфиг-файла у сервера нет, он читает `process.env` при старте), — или через **флаги командной строки** (см. ниже, дублируют часть переменных).
+Все 78 тулзов уходят хосту по `tools/list` ещё до первого вызова — это ~6K токенов «налога» на контекст модели. Если агенту нужны не все, набор можно сузить через **env-переменные** — прописываются в том же `env`-блоке конфига, где `GITFLIC_TOKEN` (своего конфиг-файла у сервера нет, он читает `process.env` при старте), — или через **флаги командной строки** (см. ниже, дублируют часть переменных).
 
 | Переменная | Значение | Что делает |
 |---|---|---|
@@ -124,7 +124,7 @@ claude mcp add gitflic --env GITFLIC_TOKEN=xxxxxxxx -- npx -y gitflic-cli-mcp
 | `commit` | 4 | 4 read / 0 write |
 | `issue` | 12 | 4 read / 8 write |
 | `mr` | 15 | 5 read / 10 write |
-| `project` | 7 | 4 read / 3 write |
+| `project` | 8 | 5 read / 3 write |
 | `release` | 6 | 3 read / 3 write |
 | `tag` | 3 | 2 read / 1 write |
 | `user` | 5 | 5 read / 0 write |
@@ -145,14 +145,14 @@ claude mcp add gitflic --env GITFLIC_TOKEN=xxxxxxxx -- npx -y gitflic-cli-mcp
 **Примеры:**
 
 ```bash
-# Только MR и issue (27 тулзов вместо 77)
+# Только MR и issue (27 тулзов вместо 78)
 claude mcp add gitflic --env GITFLIC_TOKEN=xxxx \
   --env GITFLIC_MCP_GROUPS=mr,issue -- npx -y gitflic-cli-mcp
 
 # Read-only агент для код-ревью (только тулзы без мутаций)
 GITFLIC_MCP_READONLY=1 npx -y gitflic-cli-mcp
 
-# Может всё, кроме удаления (70 тулзов: создаёт/правит/мёрджит — но не удаляет)
+# Может всё, кроме удаления (71 тулзов: создаёт/правит/мёрджит — но не удаляет)
 GITFLIC_MCP_NO_DESTRUCTIVE=1 npx -y gitflic-cli-mcp
 
 # Точный набор из четырёх тулзов
@@ -226,7 +226,7 @@ GitFlic REST API отдаёт «сырой» JSON с кучей бесполез
 
 **Секреты вебхуков.** В slim-режиме `secret` маскируется в `secretSet: true|false` — сырой ответ его раньше **утекал** в модель. Прочитать реальное значение можно тулзом `gitflic_webhook_reveal_secret` — он помечен деструктивным, поэтому MCP-хост спросит подтверждение перед выдачей.
 
-## Все 77 тулзов
+## Все 78 тулзов
 
 Полный список по группам. **R** = read-only (`readOnlyHint: true`, не меняет состояние — попадает в `GITFLIC_MCP_READONLY=1`); **W** = write/мутация.
 
@@ -248,8 +248,8 @@ GitFlic REST API отдаёт «сырой» JSON с кучей бесполез
 ### `mr` (15)
 `R` `gitflic_mr_list` · `R` `gitflic_mr_view` · `R` `gitflic_mr_diff` · `R` `gitflic_mr_by_commit` · `R` `gitflic_mr_discuss_list` · `W` `gitflic_mr_create` · `W` `gitflic_mr_approve` · `W` `gitflic_mr_merge` · `W` `gitflic_mr_close` · `W` `gitflic_mr_cancel` · `W` `gitflic_mr_edit` · `W` `gitflic_mr_comment` · `W` `gitflic_mr_discuss_reply` · `W` `gitflic_mr_discuss_resolve` · `W` `gitflic_mr_discuss_delete`
 
-### `project` (7)
-`R` `gitflic_project_resolve` · `R` `gitflic_project_get` · `R` `gitflic_project_list_my` · `R` `gitflic_project_member_list` · `W` `gitflic_project_create` · `W` `gitflic_project_edit` · `W` `gitflic_project_member_invite`
+### `project` (8)
+`R` `gitflic_project_resolve` · `R` `gitflic_project_get` · `R` `gitflic_project_list_my` · `R` `gitflic_project_list` · `R` `gitflic_project_member_list` · `W` `gitflic_project_create` · `W` `gitflic_project_edit` · `W` `gitflic_project_member_invite`
 
 ### `release` (6)
 `R` `gitflic_release_list` · `R` `gitflic_release_get` · `R` `gitflic_release_latest` · `W` `gitflic_release_create` · `W` `gitflic_release_edit` · `W` `gitflic_release_delete`
@@ -263,7 +263,7 @@ GitFlic REST API отдаёт «сырой» JSON с кучей бесполез
 ### `webhook` (5)
 `R` `gitflic_webhook_list` · `R` `gitflic_webhook_get` · `W` `gitflic_webhook_create` · `W` `gitflic_webhook_delete` · `W` `gitflic_webhook_reveal_secret` (требует подтверждения хоста)
 
-Итого: **39 read / 38 write**. Каждый тул маппится 1-в-1 на подкоманду CLI (`gitflic …`).
+Итого: **40 read / 38 write**. Каждый тул маппится 1-в-1 на подкоманду CLI (`gitflic …`).
 
 ## Как это работает
 
@@ -306,3 +306,25 @@ GitFlic REST API отдаёт «сырой» JSON с кучей бесполез
 ## Лицензия
 
 MIT (как у родительского проекта).
+
+### Complete project and MR reads
+
+- `gitflic_project_list` lists participating projects (default `scope: "shared"`),
+  including projects owned by teams. Use `owner` to filter by owner alias.
+  `gitflic_project_list_my` retains its owned-project scope.
+- Project lists, MR diffs and MR discussions accept `page` (zero-based),
+  `size`, and `all`. They fetch all pages by default. An explicit `page`
+  selects one page unless `all: true` is also specified.
+- MR diffs expand collapsed text files by default. Set `expand: false` for
+  metadata only. The MR's source and target hashes are checked before and
+  after loading. Per-file identities must match the original MR diff.
+- Replies and inline coordinates survive the default compact response.
+  Lists expose `pagination.complete` and `pagination.nextPage`; diff responses
+  expose `_pagination` and `_diff`. `raw: true` preserves the server envelope.
+- CLI equivalents are `project list --scope shared --q-owner TEAM --all`,
+  `mr diff ID [--page N --size N | --all] [--no-expand]` and
+  `mr discuss list ID [--page N --size N | --all]`.
+  MR reads fetch all pages unless `--page` or `--no-all` is supplied.
+
+Run the focused regression tests with `npx vitest run lib/__tests__/collections.test.mjs` from
+the repository root.

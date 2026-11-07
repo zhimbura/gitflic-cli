@@ -151,7 +151,7 @@ claude mcp add gitflic --env GITFLIC_TOKEN=xxxx -- gitflic-mcp
 claude mcp add gitflic --env GITFLIC_TOKEN=xxxx -- npx -y gitflic-cli-mcp
 ```
 
-Набор из 77 тулзов можно сузить, чтобы не «съедать» контекст модели: `GITFLIC_MCP_GROUPS=mr,issue` (по группам), `GITFLIC_MCP_READONLY=1` (только чтение) и др. — либо теми же флагами: `gitflic-mcp --groups mr,issue --readonly --no-destructive`.
+Набор из 78 тулзов можно сузить, чтобы не «съедать» контекст модели: `GITFLIC_MCP_GROUPS=mr,issue` (по группам), `GITFLIC_MCP_READONLY=1` (только чтение) и др. — либо теми же флагами: `gitflic-mcp --groups mr,issue --readonly --no-destructive`.
 
 → [MCP-сервер](https://cli-gitflic.ru/mcp-server.html). Для ИИ также опубликованы [`/llms.txt`](https://cli-gitflic.ru/llms.txt) и [`/llms-full.txt`](https://cli-gitflic.ru/llms-full.txt).
 

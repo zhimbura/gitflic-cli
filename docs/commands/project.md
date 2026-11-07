@@ -16,7 +16,7 @@ gitflic project get tikhon/gitflic-cli                    # детали (alias 
 
 ```bash
 # Поиск по имени и владельцу, JSON для агентов
-gitflic project list --scope public --q-name wave --q-owner FerdBur --format json
+gitflic project list --scope shared --q-name wave --q-owner FerdBur --all --format json
 ```
 
 ## CRUD
