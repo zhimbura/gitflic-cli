@@ -1,5 +1,14 @@
 # Changelog
 
+## gitflic-cli-mcp 0.5.0 — 2026-10-12 — feature: CLI-флаги, дублирующие GITFLIC_MCP_*; запуск через бин gitflic-mcp
+
+> Релиз только MCP-пакета. CLI `gitflic-cli` без изменений — остаётся 0.3.6.
+
+- **CLI-флаги поверх env.** `server.mjs` теперь парсит аргументы командной строки: `--output slim|full|raw` (дублирует `GITFLIC_MCP_OUTPUT`), `--groups <list>` (`GITFLIC_MCP_GROUPS`), `--readonly` (`GITFLIC_MCP_READONLY`), `--no-destructive` (`GITFLIC_MCP_NO_DESTRUCTIVE`), плюс `--help`. Поддерживаются формы `--flag value` и `--flag=value`, у булевых есть явное выключение (`--readonly=false`). Приоритет: **флаг > env**; явный `--output` заодно гасит env-алиас `GITFLIC_MCP_RAW` (иначе тот побеждал бы `OUTPUT` внутри slim.mjs). Вся диагностика — в stderr (stdout зарезервирован под JSON-RPC); неизвестный флаг или неверное значение — `WARN` и старт как раньше, не падение. Новый pure-модуль `args.mjs` (`parseMcpArgs` / `usageText`) + тесты; `filter.mjs` / `slim.mjs` не тронуты.
+- **Запуск задокументирован через бин `gitflic-mcp`** (`npm i -g gitflic-cli-mcp`): npx остался в доках как альтернатива, но после инцидента 0.4.2 (кеш npx отдавал устаревшую версию) основной способ — глобально установленный бин. Env-примеры сохранены, флаговые добавлены рядом.
+
+**Обновление:** `npm i -g gitflic-cli-mcp@latest` или `npx -y gitflic-cli-mcp@latest`.
+
 ## gitflic-cli 0.3.6 + gitflic-cli-mcp 0.4.3 — 2026-10-08 — fix: конфиг на Windows, имена веток MR, причина ошибки GitFlic
 
 **CLI `gitflic` 0.3.6:**

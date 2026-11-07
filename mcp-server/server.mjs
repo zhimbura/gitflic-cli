@@ -2,18 +2,29 @@
 // gitflic MCP server — exposes the gitflic CLI as typed MCP tools.
 // Stdio transport; no HTTP. For Claude Code / Cursor / any MCP host.
 //
-// Usage (no install — via npx):
+// Usage — install the bin once, then run it:
+//   npm i -g gitflic-cli-mcp && GITFLIC_TOKEN="..." gitflic-mcp
+//
+// Or with no install — via npx:
 //   GITFLIC_TOKEN="..." npx -y gitflic-cli-mcp
 //
 // Or from a source checkout:
 //   cd mcp-server && npm install && GITFLIC_TOKEN="..." node server.mjs
 //
+// CLI flags duplicate the GITFLIC_MCP_* env vars (flags win over env):
+//   gitflic-mcp --groups mr,issue --readonly --no-destructive --output full
+//   (--output slim|full|raw, --groups <list>, --readonly,
+//    --no-destructive; --help for the full list)
+//
 // Then register with your MCP host, e.g. for Claude Code:
+//   claude mcp add gitflic --env GITFLIC_TOKEN=... -- gitflic-mcp --readonly
+// or via npx, without install:
 //   claude mcp add gitflic --env GITFLIC_TOKEN=... -- npx -y gitflic-cli-mcp
 // or add to ~/.claude.json:
-//   { "mcpServers": { "gitflic": { "command": "npx",
-//                                   "args": ["-y", "gitflic-cli-mcp"],
+//   { "mcpServers": { "gitflic": { "command": "gitflic-mcp",
+//                                   "args": ["--groups", "mr,issue", "--readonly"],
 //                                   "env": { "GITFLIC_TOKEN": "..." } } } }
+//   (npx variant: "command": "npx", "args": ["-y", "gitflic-cli-mcp", ...flags])
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
@@ -23,7 +34,23 @@ import { runGitflic, runGitflicJson, GitflicError } from "./runner.mjs";
 import { TOOLS } from "./tools.mjs";
 import { selectTools } from "./filter.mjs";
 import { resolveProjectArg } from "./project-resolver.mjs";
+import { parseMcpArgs, usageText } from "./args.mjs";
 import { slimResult } from "./slim.mjs";
+
+// CLI flags duplicate the GITFLIC_MCP_* env vars (--output / --groups /
+// --readonly / --no-destructive); a flag wins over its env var. Merge them
+// into one effective env here, then pass it everywhere env was used, so
+// filter.mjs and slim.mjs stay pure. All diagnostics go to stderr — stdout
+// is reserved for JSON-RPC.
+const { env: effEnv, warnings: argWarnings, help } = parseMcpArgs();
+
+if (help) {
+  process.stderr.write(usageText());
+  process.exit(0);
+}
+for (const w of argWarnings) {
+  process.stderr.write(`[gitflic-mcp] WARN: ${w}\n`);
+}
 
 const server = new McpServer(
   {
@@ -69,8 +96,9 @@ function jsonSchemaToZod(schema) {
 }
 
 // Optionally scope the tool set via env (GITFLIC_MCP_GROUPS / _READONLY /
-// _TOOLS / _EXCLUDE) to keep the model's context small. Default: all tools.
-const { selected, warnings } = selectTools(TOOLS, process.env);
+// _TOOLS / _EXCLUDE) or the matching CLI flags (--groups / --readonly /
+// --no-destructive) to keep the model's context small. Default: all tools.
+const { selected, warnings } = selectTools(TOOLS, effEnv);
 for (const w of warnings) {
   process.stderr.write(`[gitflic-mcp] WARN: ${w}\n`);
 }
@@ -116,8 +144,9 @@ for (const tool of selected) {
         }
         // Shape the response for the LLM (issue #1): flatten HAL envelopes,
         // project per entity, drop noise, mask secrets. Opt out per-call with
-        // `raw:true` or globally with GITFLIC_MCP_RAW=1 / GITFLIC_MCP_OUTPUT=full.
-        const shaped = slimResult(tool.name, result, resolvedArgs, process.env);
+        // `raw:true`, or globally with GITFLIC_MCP_RAW=1 / GITFLIC_MCP_OUTPUT=full
+        // (env) / --output full (CLI flag, wins over both).
+        const shaped = slimResult(tool.name, result, resolvedArgs, effEnv);
         return {
           content: [{ type: "text", text: JSON.stringify(shaped, null, 2) }],
         };
