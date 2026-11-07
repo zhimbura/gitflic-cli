@@ -6,6 +6,15 @@ description: "История изменений gitflic-cli и MCP-сервер�
 
 Все значимые изменения в `gitflic-cli`. Формат — приближённый к [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.4.0 + gitflic-cli-mcp 0.5.0] — 2026-11-07
+
+Полная пагинация MR, проекты команд и флаги для MCP-сервера.
+
+- **`mr diff` и `mr discuss list` забирают все страницы по умолчанию.** `--page N` / `--size N` выбирают одну страницу, `--no-all` оставляет один запрос, `--no-expand` не догружает свёрнутые файлы. В JSON есть признаки полноты `_pagination` и `_diff`. Если MR меняется во время загрузки, команда завершается ошибкой. Автор — Антон Старостин (MR !3).
+- **MCP: новый тул `gitflic_project_list`** с областями `public` / `my` / `shared` и фильтром по владельцу, чтобы находить проекты команд. Тулзов теперь **78**. Тулы `gitflic_mr_diff`, `gitflic_mr_discuss_list` и списки проектов принимают `page`, `size`, `all`.
+- **MCP: флаги командной строки** `--output`, `--groups`, `--readonly`, `--no-destructive` и `--help` дублируют переменные `GITFLIC_MCP_*`; флаг важнее env. Автор — sv99 (MR !2).
+- Пин MCP на CLI теперь `0.4.0`.
+
 ## [0.3.6 + gitflic-cli-mcp 0.4.3] — 2026-10-08
 
 Конфиг на Windows, имена веток MR и причина ошибки GitFlic.

@@ -1,13 +1,18 @@
 # Changelog
 
-## gitflic-cli-mcp 0.5.0 — 2026-10-12 — feature: CLI-флаги, дублирующие GITFLIC_MCP_*; запуск через бин gitflic-mcp
+## gitflic-cli 0.4.0 + gitflic-cli-mcp 0.5.0 — 2026-11-07 — feature: полная пагинация MR, проекты команд, флаги MCP
 
-> Релиз только MCP-пакета. CLI `gitflic-cli` без изменений — остаётся 0.3.6.
+**CLI `gitflic` 0.4.0** (MR !3, Антон Старостин):
+- **`mr diff` и `mr discuss list` по умолчанию забирают все страницы.** `--page N` / `--size N` выбирают одну страницу, `--all` / `--no-all` управляют обходом, `--no-expand` не догружает свёрнутые текстовые файлы. Ответ содержит `_pagination` и `_diff` (полнота, `nextPage`, список неразвёрнутых файлов). Если коммиты MR или число объектов меняются во время загрузки, команда падает с понятной ошибкой.
+- Общий слой пагинации (`lib/paginate.mjs`) переписан: защита от повторных страниц, проверка `totalElements`.
 
-- **CLI-флаги поверх env.** `server.mjs` теперь парсит аргументы командной строки: `--output slim|full|raw` (дублирует `GITFLIC_MCP_OUTPUT`), `--groups <list>` (`GITFLIC_MCP_GROUPS`), `--readonly` (`GITFLIC_MCP_READONLY`), `--no-destructive` (`GITFLIC_MCP_NO_DESTRUCTIVE`), плюс `--help`. Поддерживаются формы `--flag value` и `--flag=value`, у булевых есть явное выключение (`--readonly=false`). Приоритет: **флаг > env**; явный `--output` заодно гасит env-алиас `GITFLIC_MCP_RAW` (иначе тот побеждал бы `OUTPUT` внутри slim.mjs). Вся диагностика — в stderr (stdout зарезервирован под JSON-RPC); неизвестный флаг или неверное значение — `WARN` и старт как раньше, не падение. Новый pure-модуль `args.mjs` (`parseMcpArgs` / `usageText`) + тесты; `filter.mjs` / `slim.mjs` не тронуты.
-- **Запуск задокументирован через бин `gitflic-mcp`** (`npm i -g gitflic-cli-mcp`): npx остался в доках как альтернатива, но после инцидента 0.4.2 (кеш npx отдавал устаревшую версию) основной способ — глобально установленный бин. Env-примеры сохранены, флаговые добавлены рядом.
+**MCP `gitflic-cli-mcp` 0.5.0:**
+- **Новый тул `gitflic_project_list`** (MR !3): области `public` / `my` / `shared`, фильтр по владельцу — находит проекты команд через `/project/shared`. Теперь тулзов 78. `gitflic_project_list_my` остаётся только для своих проектов.
+- `gitflic_mr_diff`, `gitflic_mr_discuss_list`, списки проектов принимают `page`, `size`, `all` (+ `expand` для диффа); ответы содержат координаты inline-комментариев и метаданные полноты.
+- **CLI-флаги поверх env** (MR !2, sv99): `--output slim|full|raw`, `--groups <list>`, `--readonly`, `--no-destructive`, `--help`; флаг важнее env. Новый модуль `args.mjs` + тесты. Запуск через бин `gitflic-mcp` (`npm i -g gitflic-cli-mcp`) описан в README, npx остаётся альтернативой.
+- Пин `gitflic-cli` теперь `0.4.0`.
 
-**Обновление:** `npm i -g gitflic-cli-mcp@latest` или `npx -y gitflic-cli-mcp@latest`.
+**Обновление:** `npm i -g gitflic-cli@latest gitflic-cli-mcp@latest` или `npx -y gitflic-cli-mcp@latest`.
 
 ## gitflic-cli 0.3.6 + gitflic-cli-mcp 0.4.3 — 2026-10-08 — fix: конфиг на Windows, имена веток MR, причина ошибки GitFlic
 
