@@ -12,7 +12,7 @@ const SITE_TITLE = "gitflic-cli";
 // Site-wide fallback description. Kept short (~150 chars) so search snippets are
 // not truncated. Per-page descriptions live in each page's frontmatter.
 const SITE_DESC =
-  "gitflic-cli — консольный клиент (CLI) для GitFlic: 100% покрытие REST API (~199 эндпоинтов, 20 модулей), ноль зависимостей и MCP-сервер для AI-агентов.";
+  "GitFlic CLI (gitflic-cli) — консольный клиент для GitFlic: 100% REST API (~199 эндпоинтов), ноль зависимостей и MCP-сервер для AI-агентов Claude Code и Cursor.";
 const OG_IMAGE = `${HOSTNAME}/og.png`;
 
 // Yandex.Metrika counter id. Set to your numeric counter to enable analytics;
@@ -136,7 +136,7 @@ function faqFor(relativePath) {
 export default defineConfig({
   lang: "ru-RU",
   title: SITE_TITLE,
-  titleTemplate: ":title | gitflic-cli — CLI для GitFlic",
+  titleTemplate: ":title | GitFlic CLI",
   description: SITE_DESC,
   base: "/",
   // IMPORTANT: keep .html URLs. Timeweb static hosting has no extensionless
@@ -213,15 +213,11 @@ export default defineConfig({
             name: "gitflic-cli",
             inLanguage: "ru-RU",
             description: SITE_DESC,
-            potentialAction: {
-              "@type": "SearchAction",
-              target: `${HOSTNAME}/?q={search_term_string}`,
-              "query-input": "required name=search_term_string",
-            },
           },
           {
             "@type": "SoftwareApplication",
             name: "gitflic-cli",
+            alternateName: ["GitFlic CLI", "gitflic cli", "GitFlic MCP"],
             applicationCategory: "DeveloperApplication",
             operatingSystem: "Linux, macOS, Windows",
             url: `${HOSTNAME}/`,
@@ -274,9 +270,12 @@ export default defineConfig({
   // (BreadcrumbList, TechArticle, and FAQPage where applicable).
   transformPageData(pageData) {
     const canonical = canonicalFor(pageData.relativePath);
+    // Home page carries its own full title (titleTemplate: false) — no suffix.
     const title = pageData.title
-      ? `${pageData.title} | gitflic-cli`
-      : "gitflic-cli — CLI для GitFlic";
+      ? pageData.relativePath === "index.md"
+        ? pageData.title
+        : `${pageData.title} | GitFlic CLI`
+      : "GitFlic CLI — консольный клиент и MCP-сервер для GitFlic";
     const desc =
       pageData.description ||
       pageData.frontmatter.description ||
@@ -350,6 +349,7 @@ export default defineConfig({
       { text: "Быстрый старт", link: "/quickstart" },
       { text: "Команды", link: "/commands/" },
       { text: "Покрытие API", link: "/api-coverage" },
+      { text: "AI и MCP", link: "/ai-agents" },
       { text: "Changelog", link: "/changelog" },
       { text: "Скачать", link: "/downloads/", target: "_self" },
       { text: "GitFlic", link: "https://gitflic.ru/project/tikhon/gitflic-cli" },
@@ -399,6 +399,8 @@ export default defineConfig({
         collapsed: true,
         items: [
           { text: "MCP-сервер для AI-агентов", link: "/mcp-server" },
+          { text: "GitFlic и AI-агенты", link: "/ai-agents" },
+          { text: "Вопросы и ответы", link: "/faq" },
           { text: "Git credential helper", link: "/credential-helper" },
         ],
       },

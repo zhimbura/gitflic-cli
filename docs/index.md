@@ -1,12 +1,12 @@
 ---
 layout: home
-title: "gitflic-cli — CLI для GitFlic (REST API)"
+title: "GitFlic CLI и MCP: консольный клиент и AI-агенты для GitFlic"
 titleTemplate: false
-description: "gitflic-cli — консольный клиент (CLI) для GitFlic: 100% покрытие REST API (~199 эндпоинтов, 20 модулей), ноль зависимостей и MCP-сервер для AI-агентов."
+description: "GitFlic CLI (gitflic-cli) — консольный клиент для GitFlic: 100% REST API и MCP-сервер для AI-агентов Claude Code и Cursor. Установка: npm i -g gitflic-cli"
 
 hero:
-  name: gitflic-cli
-  text: Полный CLI для REST API GitFlic
+  name: GitFlic CLI
+  text: CLI и MCP-сервер для GitFlic
   tagline: Ноль внешних зависимостей. 100% покрытие ~199 эндпоинтов в 20 модулях. MCP-сервер для AI-агентов.
   image:
     src: /_media/icon.svg
@@ -31,7 +31,7 @@ features:
     details: Чистый Node ESM (≥18) на глобальном fetch. Никакого npm install — один бинарь gitflic.
   - icon: 🤖
     title: Дружелюбен к агентам
-    details: --format json + NDJSON streaming + стабильные коды возврата. MCP-сервер (77 тулзов) поверх всего CLI — со сжатием ответов (~70% экономии токенов).
+    details: --format json + NDJSON streaming + стабильные коды возврата. MCP-сервер (78 тулзов) поверх всего CLI — со сжатием ответов (~70% экономии токенов).
   - icon: 🔐
     title: Безопасные токены
     details: macOS Keychain / Linux libsecret / chmod 0600 fallback. Multi-account и per-project bindings.
@@ -54,6 +54,20 @@ gitflic mr create --title "Fix login" --to main
 ```
 
 Ноль транзитивных зависимостей — чистый Node ESM (`>=18`), один бинарь `gitflic`. [Другие способы установки →](/install.html)
+
+## Что такое GitFlic CLI
+
+GitFlic CLI (`gitflic-cli`) — неофициальный консольный клиент для [GitFlic](https://gitflic.ru). Он работает с публичным REST API: merge-реквесты, релизы, задачи, ветки, теги, проекты, реестр пакетов и CI/CD вызываются командами `gitflic …` из терминала и скриптов. Это пользовательский клиент, а не серверная утилита администратора `cli.jar`.
+
+## GitFlic MCP для AI-агентов
+
+GitFlic MCP — сервер Model Context Protocol (пакет `gitflic-cli-mcp`), который даёт AI-агентам Claude Code и Cursor 78 инструментов GitFlic. Подключение одной командой:
+
+```bash
+claude mcp add gitflic --env GITFLIC_TOKEN=xxxxxxxx -- npx -y gitflic-cli-mcp
+```
+
+[Подробнее про MCP-сервер →](/mcp-server.html)
 
 ## Архитектура
 

@@ -1,8 +1,9 @@
 ---
-description: "MCP-сервер gitflic-cli: обёртка CLI в тулзы Model Context Protocol для AI-агентов (Claude Code, Cursor) со сжатием ответов и экономией токенов."
+title: "GitFlic MCP-сервер для Claude Code и Cursor"
+description: "GitFlic MCP — сервер Model Context Protocol для AI-агентов: 78 тулзов для MR, задач, релизов. Подключение к Claude Code и Cursor одной командой."
 ---
 
-# MCP-сервер для AI-агентов
+# GitFlic MCP-сервер для AI-агентов
 
 `mcp-server/` — это [Model Context Protocol](https://modelcontextprotocol.io) сервер, оборачивающий CLI `gitflic` в **типизированные тулзы** для AI-агентов (Claude Code, Cursor и т.п.).
 

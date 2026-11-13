@@ -1,8 +1,9 @@
 ---
-description: "Установка gitflic-cli: npm install -g, разовый запуск через npx, портативные tar.gz-релизы и требования (Node >=18). Способы установки CLI для GitFlic."
+title: "Установка GitFlic CLI: npm, npx, Windows"
+description: "Установка GitFlic CLI (gitflic-cli): npm install -g, разовый запуск через npx, Windows/PowerShell, портативный tar.gz. Нужен Node.js 18+."
 ---
 
-# Установка
+# Установка GitFlic CLI
 
 ## Требования
 

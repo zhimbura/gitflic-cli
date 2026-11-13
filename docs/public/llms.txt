@@ -3,7 +3,9 @@
 > Полнофункциональный консольный клиент (CLI) для REST API GitFlic (gitflic.ru). 100% покрытие — ~199 эндпоинтов в 20 модулях: merge-реквесты, релизы, задачи, ветки, теги, коммиты, файлы, проекты, пользователи/команды/компании, окружения, вебхуки, реестр пакетов, CI/CD, раннеры, админ, SAML. Ноль внешних зависимостей (чистый Node ESM ≥18). Есть MCP-сервер для AI-агентов. Документация на русском.
 
 Ключевые факты:
-- Установка: `git clone git@gitflic.ru:tikhon/gitflic-cli.git && bash install.sh` — один бинарь `gitflic`.
+- Установка CLI: `npm install -g gitflic-cli` (или разово `npx gitflic-cli help`) — один бинарь `gitflic`.
+- MCP-сервер для Claude Code и Cursor: `claude mcp add gitflic --env GITFLIC_TOKEN=xxxxxxxx -- npx -y gitflic-cli-mcp` (пакет `gitflic-cli-mcp`, 78 инструментов).
+- GitFlic CLI — неофициальный пользовательский клиент REST API, не серверная утилита `cli.jar`.
 - Аутентификация: `gitflic auth login --token <token>` (хранится в macOS Keychain / Linux libsecret / chmod 0600).
 - Машинный вывод: каждая команда поддерживает `--format json` (дружелюбно к скриптам и AI-агентам).
 - Полный текст всей документации одним файлом: https://cli-gitflic.ru/llms-full.txt
