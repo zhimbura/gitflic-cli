@@ -1,5 +1,10 @@
 # Changelog
 
+## gitflic-cli-mcp 0.5.1 — 2026-11-14 — публикация в официальном MCP Registry
+
+- В `package.json` добавлено поле `mcpName` (`io.github.zhimbura/gitflic-cli-mcp`), добавлен `mcp-server/server.json`. Код сервера не менялся.
+- Документация: title, H1 и description страниц с ключом «GitFlic CLI», новые страницы [GitFlic и AI-агенты](https://cli-gitflic.ru/ai-agents.html) и [Вопросы и ответы](https://cli-gitflic.ru/faq.html).
+
 ## gitflic-cli 0.4.0 + gitflic-cli-mcp 0.5.0 — 2026-11-07 — feature: полная пагинация MR, проекты команд, флаги MCP
 
 **CLI `gitflic` 0.4.0** (MR !3, Антон Старостин):
